@@ -9,7 +9,6 @@ export default function LoginPage() {
     <div className="d-flex vh-100 align-items-center justify-content-center bg-gradient p-5"
       style={{ background: "linear-gradient(to right, #f3e7e9, #e3eeff)" }}>
       
-      {/* 民宿风格的房子 */}
       <div className="house-container">
         <div className="house">
           <div className="roof"></div>
