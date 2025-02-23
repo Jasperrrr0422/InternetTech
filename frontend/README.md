@@ -2,7 +2,7 @@
 Download resource:
 
 cd frontend
-npm install install.text
+xargs npm install < install.txt
 
 In the project directory, you can run:
 
