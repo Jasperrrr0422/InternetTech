@@ -19,10 +19,10 @@ code {
   justify-content: center;
   position: relative;
   animation: float 3s ease-in-out infinite alternate;
-  margin-right:60px
+  margin-right:100px
 }
 
-/* 房子主体 */
+
 .house {
   width: 160px;
   height: 140px;
@@ -47,7 +47,7 @@ code {
   border-bottom: 70px solid #d35400;
 }
 
-/* 烟囱 */
+
 .chimney {
   position: absolute;
   top: -90px;
@@ -59,7 +59,7 @@ code {
   animation: smoke 3s infinite alternate ease-in-out;
 }
 
-/* 门 */
+
 .door {
   position: absolute;
   bottom: 0;
@@ -160,6 +160,47 @@ code {
   }
 }
 
+.login-page-container {
+  height: 100vh;
+  background: linear-gradient(to right, #f3e7e9, #e3eeff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.header-nav {
+  position: absolute;
+  top: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.welcome-text {
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.login-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 50px; 
+}
+
+.house-container {
+  width: 200px; 
+}
+
+.login-card {
+  width: 750px;
+  background: #fffaf0;
+  border-radius: 12px;
+  text-align: center;
+}
 .homepage-container {
   background: linear-gradient(to right, #f8f9fa, #e3f2fd);
   min-height: 100vh;
