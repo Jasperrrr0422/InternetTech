@@ -1,7 +1,6 @@
 from rest_framework import serializers  
 from .models import Hotel, Amentity
-from rest_framework.response import Response
-from rest_framework import status
+from drf_spectacular.utils import extend_schema_field
 
 class HotelSerializer(serializers.ModelSerializer):  
     image_url = serializers.SerializerMethodField()  
@@ -50,8 +49,8 @@ class HotelSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Image size too large. Maximum size is 5MB.")  
         return value
     
-
-    def get_image_url(self, obj) -> None:  
+    @extend_schema_field(serializers.URLField)
+    def get_image_url(self, obj):
         # 获取图片 URL  
         if obj.image:  
             request = self.context.get('request')  

@@ -4,6 +4,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework import permissions, status  
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import ParseError
 from .serializers import UserRegisterSerializer, UserLoginSerializer
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
 
@@ -54,7 +56,8 @@ class Registerview(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)  
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
 
-class LoginView(TokenObtainPairView):  
+class LoginView(TokenObtainPairView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = UserLoginSerializer  
     @extend_schema(  
         request=UserLoginSerializer,  
@@ -158,4 +161,53 @@ class TokenVerifyView(APIView):
             "username": user.username,  
             "email": user.email,  
             "message": "Token is valid."  
-        }, status=status.HTTP_200_OK)  
+        }, status=status.HTTP_200_OK)
+    
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    @extend_schema(
+        summary="User Logout",
+        description="Logout user and blacklist the refresh token",
+        request={
+            'type': 'object',
+            'properties': {
+                'refresh': {'type': 'string', 'description': '刷新令牌'},
+            },
+            'required': ['refresh'],
+        },
+        responses={
+            status.HTTP_200_OK: {
+                'type': 'object',
+                'properties': {
+                    'message': {'type': 'string', 'description': '登出成功消息'},
+                },
+            },
+            status.HTTP_400_BAD_REQUEST: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string', 'description': '错误信息'},
+                },
+            },
+        },
+        tags=["Authentication"],
+    )
+    def post(self, request):
+        try:
+            refresh_token = request.data.get('refresh')
+            if not refresh_token:
+                raise ParseError('Refresh token is required')
+            
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            
+            return Response(
+                {'message': '成功登出'}, 
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )

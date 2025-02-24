@@ -17,4 +17,8 @@ class Hotel(models.Model):
     price_per_night = models.DecimalField(max_digits=10, decimal_places=2)
     total_rooms = models.IntegerField()
     total_beds = models.IntegerField()
+    rating = models.IntegerField(default=0)
+
+
+    
 
