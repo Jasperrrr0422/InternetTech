@@ -19,10 +19,10 @@ class Registerview(APIView):
             status.HTTP_201_CREATED: {  
                 'type': 'object',  
                 'properties': {  
-                    'username': {'type': 'string', 'description': '用户的用户名'},  
-                    'email': {'type': 'string', 'description': '用户的邮箱地址'},  
+                    'username': {'type': 'string', 'description': 'username'},  
+                    'email': {'type': 'string', 'description': 'email'},  
                 },  
-                'description': '用户注册成功后的返回数据',  
+                'description': 'Return data after successful user registration',  
             },  
             status.HTTP_400_BAD_REQUEST: {  
                 'type': 'object',  
@@ -30,23 +30,23 @@ class Registerview(APIView):
                     'username': {  
                         'type': 'array',   
                         'items': {'type': 'string'},  
-                        'description': '用户名的错误信息'  
+                        'description': 'error username'  
                     },  
                     'email': {  
                         'type': 'array',   
                         'items': {'type': 'string'},  
-                        'description': '邮箱的错误信息'  
+                        'description': 'error email'  
                     },  
                     'password': {  
                         'type': 'array',   
                         'items': {'type': 'string'},  
-                        'description': '密码的错误信息'  
+                        'description': 'error password'  
                     },  
                 },  
-                'description': '用户注册时发生错误的返回数据',  
+                'description': 'Return data after user registration error',  
             },  
         },  
-        description='用户注册接口，接受用户名、邮箱和密码',
+        description='The API Endpoint for user registration.',
         tags=["Authentication"],
     )  
     def post(self, request):  
@@ -66,16 +66,16 @@ class LoginView(TokenObtainPairView):
             status.HTTP_200_OK: {  
                 'type': 'object',  
                 'properties': {  
-                    'access': {'type': 'string', 'description': '访问令牌'},  
-                    'refresh': {'type': 'string', 'description': '刷新令牌'},
-                    'user_id': {'type': 'integer', 'description': '用户ID'},
-                    'username': {'type': 'string', 'description': '用户名'},
+                    'access': {'type': 'string', 'description': 'access token'},  
+                    'refresh': {'type': 'string', 'description': 'refresh token'},
+                    'user_id': {'type': 'integer', 'description': 'user id'},
+                    'username': {'type': 'string', 'description': 'username'},
                 },  
-                'description': '成功登录后返回的JWT令牌',  
+                'description': 'Return data after successful login',  
             },  
-            status.HTTP_401_UNAUTHORIZED: '无效的登录凭证',  
+            status.HTTP_401_UNAUTHORIZED: 'Invalid login credentials',  
         },  
-        description='用户登录并返回JWT令牌',
+        description='The API Endpoint for user login.',
         tags=["Authentication"],
     )
     def post(self, request, *args, **kwargs):  
@@ -87,7 +87,7 @@ class RefreshTokenView(TokenRefreshView):
         request={  
             'type': 'object',  
             'properties': {  
-                'refresh': {'type': 'string', 'description': '刷新令牌'},  
+                'refresh': {'type': 'string', 'description': 'refresh token'},  
             },  
             'required': ['refresh'],  
         },  
@@ -95,20 +95,20 @@ class RefreshTokenView(TokenRefreshView):
             status.HTTP_200_OK: {  
                 'type': 'object',  
                 'properties': {  
-                    'access': {'type': 'string', 'description': '新的访问令牌'},  
-                    'expires_in': {'type': 'integer', 'description': '新的访问令牌有效时间（秒）'},  
+                    'access': {'type': 'string', 'description': 'new access token'},  
+                    'expires_in': {'type': 'integer', 'description': 'new access token expires in (seconds)'},  
                 },  
-                'description': '成功刷新令牌后返回的新的JWT访问令牌',  
+                'description': 'Return data after successful refresh token',  
             },  
             status.HTTP_401_UNAUTHORIZED: {  
                 'type': 'object',  
                 'properties': {  
-                    'error': {'type': 'string', 'description': '错误信息'},  
+                    'error': {'type': 'string', 'description': 'error message'},  
                 },  
-                'description': '无效的刷新令牌',  
+                'description': 'Invalid refresh token',  
             },  
         },  
-        description='使用刷新令牌获取新的访问令牌',
+        description='The API Endpoint for refreshing access token.',
         tags=["Authentication"],
     )  
     def post(self, request, *args, **kwargs):  
@@ -131,18 +131,18 @@ class RefreshTokenView(TokenRefreshView):
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
     @extend_schema(
-        summary="用户登出",
-        description="使用 refresh token 登出用户并将其加入黑名单",
+        summary="Logout",
+        description="blacklist refresh token",
         request=inline_serializer(
             name='LogoutRequest',
             fields={
-                'refresh': serializers.CharField(help_text='刷新令牌')
+                'refresh': serializers.CharField(help_text='refresh token')
             }
         ),examples=[
             OpenApiExample(
-                name='登出请求示例',
-                summary="标准登出请求",
-                description="使用 refresh token 登出",
+                name='Logout Request Example',
+                summary="Standard Logout Request",
+                description="Logout using refresh token",
                 value={
                     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                 },
@@ -151,20 +151,20 @@ class LogoutView(APIView):
         ],
         responses={
             200: OpenApiResponse(
-                description="登出成功",
+                description="Logout successfully",
                 examples=[
                     OpenApiExample(
-                        "成功响应",
+                        "Success Response",
                         value={
-                            "message": "成功登出"
+                            "message": "Logout successfully"
                         }
                     )
                 ]
             ),400: OpenApiResponse(
-                description="请求错误",
+                description="Request error",
                 examples=[
                     OpenApiExample(
-                        "错误响应",
+                        "Error Response",
                         value={
                             "error": "Refresh token is required"
                         }
@@ -187,7 +187,7 @@ class LogoutView(APIView):
                 return Response({'message': 'Token already blacklisted'})
             
             return Response(
-                {'message': '成功登出'}, 
+                {'message': 'Logout successfully'}, 
                 status=status.HTTP_200_OK
             )
         except Exception as e:
