@@ -15,7 +15,7 @@ class HotelSerializer(serializers.ModelSerializer):
         fields = [  
             'id', 'name', 'description', 'address',  
             'image_url', 'price_per_night', 'total_rooms',  
-            'total_beds', 'owner', 'amentities', 'image'  
+            'total_beds', 'owner', 'amentities', 'image', 'rating'
         ]  
         read_only_fields = ['image_url', 'owner']  
 
@@ -75,3 +75,4 @@ class AmentitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Amentity
         fields = ['name']
+
