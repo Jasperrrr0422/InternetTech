@@ -35,3 +35,8 @@ class UserLoginSerializer(TokenObtainPairSerializer):
             "username": self.user.username  
         })  
         return data 
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role']

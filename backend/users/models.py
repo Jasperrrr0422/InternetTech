@@ -11,3 +11,6 @@ class User(AbstractUser):
     role = models.CharField(max_length=5,choices=ROLE_CHOICES, default='user')
     phone = models.CharField(max_length=20,blank=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return self.username

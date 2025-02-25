@@ -22,7 +22,7 @@ class HotelSerializer(serializers.ModelSerializer):
     def validate_amentities(self, value):  
         """  
         验证 amentities 字段，并将名称转换为设施主键 ID。  
-        """  
+        """ 
         if not value:  
             raise serializers.ValidationError("The amenities list cannot be empty.")  
         
@@ -58,13 +58,8 @@ class HotelSerializer(serializers.ModelSerializer):
         return None  
 
     def create(self, validated_data):  
-        # 从 amenities 中取出数据  
         amenities = validated_data.pop('amentities', [])  
-
-        # 创建酒店  
         hotel = Hotel.objects.create(**validated_data)  
-
-        # 绑定设施
         for amenity in amenities:
             hotel.amentities.add(amenity)  
 

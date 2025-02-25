@@ -20,5 +20,9 @@ class Hotel(models.Model):
     rating = models.IntegerField(default=0)
 
 
+    def __str__(self):
+        return self.name
+
+
     
 

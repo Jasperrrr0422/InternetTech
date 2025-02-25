@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
+    'celery',
+    'django_celery_results',
     'users',
     'bookings',
     'payments',
@@ -105,6 +107,14 @@ SPECTACULAR_SETTINGS = {
 AUTHENTICATION_BACKENDS = [  
     'django.contrib.auth.backends.ModelBackend',  
 ] 
+
+# Celery设置  
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # 消息代理  
+CELERY_RESULT_BACKEND = 'django-db'  # 结果后端使用Django ORM  
+CELERY_ACCEPT_CONTENT = ['json']  
+CELERY_TASK_SERIALIZER = 'json'  
+CELERY_RESULT_SERIALIZER = 'json'  
+CELERY_TIMEZONE = 'Asia/Shanghai'  # 设置时区 
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
