@@ -50,10 +50,7 @@ class HotelReviewsView(APIView):
         try:  
             hotel = Hotel.objects.get(id=hotel_id)  
             serializer = HotelReviewsSerializer(hotel)
-            return Response(serializer.data)
-            # pagination = ReviewPagination()
-            # paginated_reviews = pagination.paginate_queryset(serializer.data, request)
-            # return pagination.get_paginated_response(paginated_reviews, serializer.data)  
+            return Response(serializer.data) 
         except Hotel.DoesNotExist:  
             return Response(  
                 {"error": "找不到该酒店"},  

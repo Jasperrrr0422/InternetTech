@@ -39,11 +39,12 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
 # 酒店评论列表序列化器  
 class HotelReviewsSerializer(serializers.ModelSerializer):  
     reviews = serializers.SerializerMethodField()
-    review_id = serializers.IntegerField(source='id', read_only=True)
+    hotel_id = serializers.IntegerField(source='id', read_only=True)
+
 
     class Meta:  
         model = Hotel  
-        fields = ['review_id', 'name', 'reviews']  
+        fields = ['hotel_id', 'name', 'reviews']  
     
     def get_reviews(self, obj):  
         # 只获取直接评论酒店的评论（没有父评论的）  

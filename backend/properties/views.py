@@ -17,29 +17,30 @@ from .pagination import HotelPagination
 from django.db.models import Q  
 from django.core.cache import cache   
 from django.utils.decorators import method_decorator  
-from django.views.decorators.cache import cache_page  
+from django.views.decorators.cache import cache_page
+from watson import search as watson
 
 class HotelUploadByOwner(APIView):  
     permission_classes = [IsAuthenticated, IsOwnerRole]  
 
     @extend_schema(  
-        summary="获取酒店列表(owner可以使用)",  
-        description="返回所有酒店信息列表",  
-        tags=["酒店管理"],  
+        summary="get all owner uploaded hotels",  
+        description="return all hotels list",
+        tags=["hotel management"],  
         responses={  
             200: OpenApiResponse(  
                 response=HotelSerializer(many=True),  
-                description="成功获取酒店列表"  
+                description="success get all hotels list"  
             )  
         },  
         examples=[  
             OpenApiExample(  
-                "成功响应示例",  
+                "success response example",  
                 value=[{  
                     "id": 1,  
-                    "name": "豪华大酒店",  
-                    "description": "五星级酒店",  
-                    "address": "市中心地段",  
+                    "name": "luxury hotel",  
+                    "description": "five-star hotel",  
+                    "address": "downtown",  
                     "image_url": "http://example.com/media/hotels/image.jpg",  
                     "price_per_night": "888.00",  
                     "total_rooms": 100,  
@@ -71,7 +72,7 @@ class HotelUploadByOwner(APIView):
                     'price_per_night': {'type': 'number', 'description': '每晚价格'},  
                     'total_rooms': {'type': 'integer', 'description': '房间总数'},  
                     'total_beds': {'type': 'integer', 'description': '床位总数'},
-                    'amentities': {'type': 'array', 'items': {'type': 'string'}, 'description': '设施列表'},
+                    'amentities': {'type': 'string', 'description': '设施列表'},
                     'image': {'type': 'string', 'format': 'binary', 'description': '酒店图片'}  
                 },  
                 'required': ['name', 'address', 'price_per_night', 'total_rooms']  
@@ -145,9 +146,9 @@ class HotelUploadByOwner(APIView):
 class AmentityListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     @extend_schema(  
-        summary="获取所有设施列表",  
-        description="返回所有可用的酒店设施列表",  
-        tags=["设施管理"],  
+        summary="create all amentities(owner can use)",  
+        description="return all available hotel amentities list",  
+        tags=["hotel management"],  
         responses={  
             200: AmentitySerializer(many=True),  
         },  
@@ -158,12 +159,12 @@ class AmentityListCreateAPIView(APIView):
                     {  
                         "id": 1,  
                         "name": "WiFi",  
-                        "description": "免费无线网络"  
+                        "description": "free wifi"  
                     },  
                     {  
                         "id": 2,  
-                        "name": "停车场",  
-                        "description": "免费停车场"  
+                        "name": "parking",  
+                        "description": "free parking"  
                     }  
                 ]  
             )  
@@ -222,103 +223,71 @@ class AmentityListCreateAPIView(APIView):
         )
     
 
-class HotelListView(APIView):
-
+class HotelListView(APIView):  
     permission_classes = [IsAuthenticated, IsUserRole]  
     pagination_class = HotelPagination  
 
     @extend_schema(  
-        summary="获取所有酒店列表(user可以使用)",  
-        description="返回所有酒店信息列表，支持分页、搜索、排序和价格筛选",  
-        tags=["酒店管理"],  
+        summary="get all hotels(user can use)",  
+        description="return all hotels list, support pagination, search, sorting and price filter",  
+        tags=["hotel management"],  
         parameters=[  
             OpenApiParameter(  
                 name='page',  
                 type=int,  
                 location=OpenApiParameter.QUERY,  
-                description='页码(默认:1)'  
+                description='page number(default:1)'  
             ),  
             OpenApiParameter(  
                 name='page_size',  
                 type=int,  
                 location=OpenApiParameter.QUERY,  
-                description='每页数量(默认:12'  
+                description='the number of hotels per page(default:12)'  
             ),  
             OpenApiParameter(  
-                name='search',  
+                name='q',  # 改为 q 参数  
                 type=str,  
                 location=OpenApiParameter.QUERY,  
-                description='搜索关键词（搜索名称、描述和地址）'  
+                description='search keywords(search name, description, address, etc.)'  
             ),  
             OpenApiParameter(  
                 name='min_price',  
                 type=float,  
                 location=OpenApiParameter.QUERY,  
-                description='最低价格'  
+                description='minimum price(default:0)'  
             ),  
             OpenApiParameter(  
                 name='max_price',  
                 type=float,  
                 location=OpenApiParameter.QUERY,  
-                description='最高价格'  
+                description='maximum price(default:1000000)'  
             ),  
             OpenApiParameter(  
                 name='ordering',  
                 type=str,  
                 location=OpenApiParameter.QUERY,  
-                description='排序字段(例如:price_per_night, -price_per_night, total_rooms, -total_rooms, created_at, -created_at)'  
+                description='sorting(default:-created_at)'  
             ),  
         ],  
-        responses={  
-            200: OpenApiResponse(  
-                response=HotelSerializer(many=True),  
-                description="成功获取酒店列表"  
-            ),  
-            400: OpenApiResponse(  
-                description="请求参数错误",  
-                examples=[  
-                    OpenApiExample(  
-                        "参数错误",  
-                        value={  
-                            "code": 400,  
-                            "message": "参数错误",  
-                            "data": {"error": "Invalid price range"}  
-                        }  
-                    )  
-                ]  
-            ),  
-            401: OpenApiResponse(  
-                description="未认证",  
-                examples=[  
-                    OpenApiExample(  
-                        "认证错误",  
-                        value={  
-                            "code": 401,  
-                            "message": "Authentication credentials were not provided.",  
-                            "data": None  
-                        }  
-                    )  
-                ]  
-            )  
-        }  
     )  
-    @method_decorator(cache_page(60 * 5))  # 缓存5分钟  
+    @method_decorator(cache_page(60 * 5))  
     def get(self, request):  
         try:  
-            search = request.query_params.get('search', '')
+            q = request.query_params.get('q', '')  
             min_price = request.query_params.get('min_price')  
             max_price = request.query_params.get('max_price')  
             ordering = request.query_params.get('ordering', '-created_at')  
   
-            queryset = Hotel.objects.all().select_related('owner')  
+            # 使用 watson 进行全文搜索  
+            if q and q.strip():
+                search_results = watson.search(q, models = (Hotel,))
+                hotel_ids = [result.object_id_int for result in search_results]
+                queryset = Hotel.objects.filter(id__in=hotel_ids).select_related('owner')
 
-            if search and search.strip():  
-                queryset = queryset.filter(  
-                    Q(name__icontains=search) |  
-                    Q(description__icontains=search) |  
-                    Q(address__icontains=search)  
-                )  
-  
+            else:  
+                queryset = Hotel.objects.all().select_related('owner')  
+
+            # 价格筛选部分不变  
             if min_price:  
                 try:  
                     queryset = queryset.filter(price_per_night__gte=float(min_price))  
@@ -339,7 +308,7 @@ class HotelListView(APIView):
                         'data': None  
                     }, status=status.HTTP_400_BAD_REQUEST)  
 
-            # 排序  
+            # 排序和分页部分不变  
             if ordering:  
                 valid_ordering_fields = ['price_per_night', '-price_per_night',   
                                        'total_rooms', '-total_rooms',  
@@ -347,7 +316,6 @@ class HotelListView(APIView):
                 if ordering in valid_ordering_fields:  
                     queryset = queryset.order_by(ordering)  
 
-            # 分页  
             paginator = self.pagination_class()  
             page_data = paginator.paginate_queryset(queryset, request)  
             
@@ -357,38 +325,36 @@ class HotelListView(APIView):
                 context={'request': request}  
             )  
 
-            return paginator.get_paginated_response(serializer.data) 
+            return paginator.get_paginated_response(serializer.data)  
                 
-            
-
         except Exception as e:  
             return Response({  
                 'code': 500,  
                 'message': 'server error',  
                 'data': {'error': str(e)}  
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)  
         
 
 class HotelDetailViewById(APIView):
     permission_classes = [IsAuthenticated, IsUserRole]  
 
     @extend_schema(  
-        summary="获取酒店详情(user可以使用)",  
-        description="返回指定酒店的详细信息",  
-        tags=["酒店管理"],  
+        summary="get hotel detail(user can use)",  
+        description="return the detail of the specified hotel",  
+        tags=["hotel management"],  
         responses={  
             200: OpenApiResponse(  
                 response=HotelSerializer,  
-                description="成功获取酒店详情"  
+                description="success get the detail of the specified hotel"  
             ),  
             404: OpenApiResponse(  
-                description="酒店不存在",  
+                description="hotel not found",  
                 examples=[  
                     OpenApiExample(  
-                        "酒店不存在",  
+                        "hotel not found",  
                         value={  
                             "code": 404,  
-                            "message": "酒店不存在",  
+                            "message": "hotel not found",  
                             "data": {"error": "Hotel not found"}  
                         }  
                     )  
@@ -402,26 +368,27 @@ class HotelDetailViewById(APIView):
         return Response(serializer.data)
     
 
+
 class HotelDetailViewByOnwer(APIView):
     permission_classes = [IsAuthenticated, IsOwnerRole]  
 
     @extend_schema(  
-        summary="获取酒店详情(owner可以使用)",  
-        description="返回指定酒店的详细信息",  
-        tags=["酒店管理"],  
+        summary="get hotel detail(owner can use)",  
+        description="return the detail of the specified hotel",  
+        tags=["hotel management"],  
         responses={  
             200: OpenApiResponse(  
                 response=HotelSerializer,  
-                description="成功获取酒店详情"  
+                description="success get the detail of the specified hotel"  
             ),  
             404: OpenApiResponse(  
                 description="酒店不存在",  
                 examples=[  
                     OpenApiExample(  
-                        "酒店不存在",  
+                        "hotel not found",  
                         value={  
                             "code": 404,  
-                            "message": "酒店不存在",  
+                            "message": "hotel not found",  
                             "data": {"error": "Hotel not found"}  
                         }  
                     )  
@@ -479,7 +446,8 @@ class HotelDetailViewByOnwer(APIView):
                     "description": "五星级酒店",
                     "address": "市中心地段",
                     "price_per_night": "888.00",
-                    "total_rooms": 100
+                    "total_rooms": 100,
+                    "amentities": "'WiFi', 'parking'"
                 }
             )])
     def put(self, request, pk):  

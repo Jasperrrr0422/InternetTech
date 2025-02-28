@@ -32,6 +32,7 @@ APPEND_SLASH = True
 
 AUTH_USER_MODEL = 'users.User'
 
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'watson',
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -109,12 +111,12 @@ AUTHENTICATION_BACKENDS = [
 ] 
 
 # Celery设置  
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # 消息代理  
-CELERY_RESULT_BACKEND = 'django-db'  # 结果后端使用Django ORM  
+CELERY_BROKER_URL = 'redis://localhost:6379/0' 
+CELERY_RESULT_BACKEND = 'django-db' 
 CELERY_ACCEPT_CONTENT = ['json']  
 CELERY_TASK_SERIALIZER = 'json'  
 CELERY_RESULT_SERIALIZER = 'json'  
-CELERY_TIMEZONE = 'Asia/Shanghai'  # 设置时区 
+CELERY_TIMEZONE = 'Asia/Shanghai'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 

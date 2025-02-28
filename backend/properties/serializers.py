@@ -2,13 +2,17 @@ from rest_framework import serializers
 from .models import Hotel, Amentity
 from drf_spectacular.utils import extend_schema_field
 
+
+class AmentitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Amentity
+        fields = ['name']
+
+
 class HotelSerializer(serializers.ModelSerializer):  
     image_url = serializers.SerializerMethodField()  
-    owner = serializers.PrimaryKeyRelatedField(read_only=True)  
-    amentities = serializers.ListField(  
-        child=serializers.CharField(),  
-        write_only=True, 
-    )  
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)   
+    amentities = AmentitySerializer(many=True, required=False)
 
     class Meta:  
         model = Hotel  
@@ -19,25 +23,39 @@ class HotelSerializer(serializers.ModelSerializer):
         ]  
         read_only_fields = ['image_url', 'owner']  
 
-    def validate_amentities(self, value):  
-        """  
-        验证 amentities 字段，并将名称转换为设施主键 ID。  
-        """ 
-        if not value:  
-            raise serializers.ValidationError("The amenities list cannot be empty.")  
+    def to_internal_value(self, data):
+        """
+        重写to_internal_value方法来处理amenities的写入
+        """
+        amenities_data = data.get('amentities')
+        if amenities_data and isinstance(amenities_data, str):
+            # 如果是字符串，按逗号分割
+            amenities_names = amenities_data.split(',')
+            # 转换为序列化器期望的格式
+            data = data.copy()
+            data['amentities'] = [{'name': name.strip()} for name in amenities_names]
         
-        # 转换设施名称为主键 ID
-        value = value[0].split(',')
-        amenities_objects = []  
-        for amenity_name in value:  
-            amenity = Amentity.objects.filter(name=amenity_name).first()  
-            if amenity:  
-                amenities_objects.append(amenity)  
-            else:  
-                raise serializers.ValidationError(  
-                    f"Amenity `{amenity_name}` does not exist."  
+        return super().to_internal_value(data)
+
+    def validate_amentities(self, value):
+        """
+        验证amenities并转换为对象列表
+        """
+        if not value:
+            return []
+
+        amenities_objects = []
+        for item in value:
+            amenity_name = item.get('name')
+            amenity = Amentity.objects.filter(name=amenity_name).first()
+            if amenity:
+                amenities_objects.append(amenity)
+            else:
+                raise serializers.ValidationError(
+                    f"Amenity `{amenity_name}` does not exist."
                 )
-        return amenities_objects  
+        return amenities_objects
+    
     def validate_image(self, value):  
         """  
         校验上传图片的格式和大小。  
@@ -57,17 +75,26 @@ class HotelSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.image.url)  
         return None  
 
-    def create(self, validated_data):  
-        amenities = validated_data.pop('amentities', [])  
-        hotel = Hotel.objects.create(**validated_data)  
-        for amenity in amenities:
-            hotel.amentities.add(amenity)  
-
+    def create(self, validated_data):
+        amenities = validated_data.pop('amentities', [])
+        hotel = Hotel.objects.create(**validated_data)
+        if amenities:
+            hotel.amentities.set(amenities)
         return hotel
 
+    def update(self, instance, validated_data):
+        amenities = validated_data.pop('amentities', None)
+        # 更新其他字段
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # 如果提供了amenities，更新关系
+        if amenities is not None:
+            instance.amentities.set(amenities)
+        
+        return instance
 
-class AmentitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Amentity
-        fields = ['name']
+
+
 
