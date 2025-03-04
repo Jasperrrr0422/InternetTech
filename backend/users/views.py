@@ -1,5 +1,6 @@
 # Create your views here.
-from rest_framework.views import APIView  
+from rest_framework.views import APIView
+from rest_framework import serializers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework import permissions, status  
 from rest_framework.response import Response
@@ -7,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ParseError
 from .serializers import UserRegisterSerializer, UserLoginSerializer
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse, inline_serializer
 
 
 class Registerview(APIView):
@@ -18,10 +19,10 @@ class Registerview(APIView):
             status.HTTP_201_CREATED: {  
                 'type': 'object',  
                 'properties': {  
-                    'username': {'type': 'string', 'description': '用户的用户名'},  
-                    'email': {'type': 'string', 'description': '用户的邮箱地址'},  
+                    'username': {'type': 'string', 'description': 'username'},  
+                    'email': {'type': 'string', 'description': 'email'},  
                 },  
-                'description': '用户注册成功后的返回数据',  
+                'description': 'Return data after successful user registration',  
             },  
             status.HTTP_400_BAD_REQUEST: {  
                 'type': 'object',  
@@ -29,23 +30,23 @@ class Registerview(APIView):
                     'username': {  
                         'type': 'array',   
                         'items': {'type': 'string'},  
-                        'description': '用户名的错误信息'  
+                        'description': 'error username'  
                     },  
                     'email': {  
                         'type': 'array',   
                         'items': {'type': 'string'},  
-                        'description': '邮箱的错误信息'  
+                        'description': 'error email'  
                     },  
                     'password': {  
                         'type': 'array',   
                         'items': {'type': 'string'},  
-                        'description': '密码的错误信息'  
+                        'description': 'error password'  
                     },  
                 },  
-                'description': '用户注册时发生错误的返回数据',  
+                'description': 'Return data after user registration error',  
             },  
         },  
-        description='用户注册接口，接受用户名、邮箱和密码',
+        description='The API Endpoint for user registration.',
         tags=["Authentication"],
     )  
     def post(self, request):  
@@ -65,16 +66,16 @@ class LoginView(TokenObtainPairView):
             status.HTTP_200_OK: {  
                 'type': 'object',  
                 'properties': {  
-                    'access': {'type': 'string', 'description': '访问令牌'},  
-                    'refresh': {'type': 'string', 'description': '刷新令牌'},
-                    'user_id': {'type': 'integer', 'description': '用户ID'},
-                    'username': {'type': 'string', 'description': '用户名'},
+                    'access': {'type': 'string', 'description': 'access token'},  
+                    'refresh': {'type': 'string', 'description': 'refresh token'},
+                    'user_id': {'type': 'integer', 'description': 'user id'},
+                    'username': {'type': 'string', 'description': 'username'},
                 },  
-                'description': '成功登录后返回的JWT令牌',  
+                'description': 'Return data after successful login',  
             },  
-            status.HTTP_401_UNAUTHORIZED: '无效的登录凭证',  
+            status.HTTP_401_UNAUTHORIZED: 'Invalid login credentials',  
         },  
-        description='用户登录并返回JWT令牌',
+        description='The API Endpoint for user login.',
         tags=["Authentication"],
     )
     def post(self, request, *args, **kwargs):  
@@ -86,7 +87,7 @@ class RefreshTokenView(TokenRefreshView):
         request={  
             'type': 'object',  
             'properties': {  
-                'refresh': {'type': 'string', 'description': '刷新令牌'},  
+                'refresh': {'type': 'string', 'description': 'refresh token'},  
             },  
             'required': ['refresh'],  
         },  
@@ -94,20 +95,20 @@ class RefreshTokenView(TokenRefreshView):
             status.HTTP_200_OK: {  
                 'type': 'object',  
                 'properties': {  
-                    'access': {'type': 'string', 'description': '新的访问令牌'},  
-                    'expires_in': {'type': 'integer', 'description': '新的访问令牌有效时间（秒）'},  
+                    'access': {'type': 'string', 'description': 'new access token'},  
+                    'expires_in': {'type': 'integer', 'description': 'new access token expires in (seconds)'},  
                 },  
-                'description': '成功刷新令牌后返回的新的JWT访问令牌',  
+                'description': 'Return data after successful refresh token',  
             },  
             status.HTTP_401_UNAUTHORIZED: {  
                 'type': 'object',  
                 'properties': {  
-                    'error': {'type': 'string', 'description': '错误信息'},  
+                    'error': {'type': 'string', 'description': 'error message'},  
                 },  
-                'description': '无效的刷新令牌',  
+                'description': 'Invalid refresh token',  
             },  
         },  
-        description='使用刷新令牌获取新的访问令牌',
+        description='The API Endpoint for refreshing access token.',
         tags=["Authentication"],
     )  
     def post(self, request, *args, **kwargs):  
@@ -125,71 +126,51 @@ class RefreshTokenView(TokenRefreshView):
             "expires_in": 300  # 设置access token有效期（秒）  
         })
     
-class TokenVerifyView(APIView):  
-    permission_classes = [IsAuthenticated]  
-
-    @extend_schema(  
-        summary="Verify User's Access Token",  
-        description=(  
-            "This API endpoint is used to verify the validity of the user's access token. "  
-            "If the token is valid, the endpoint returns the user's information, including "  
-            "user ID, username, email, and a success message. "  
-            "This endpoint requires the user to include the `Authorization` header in the format: Bearer <access_token>."  
-        ),  
-        responses={  
-            status.HTTP_200_OK: {  
-                "type": "object",  
-                "properties": {  
-                    "user_id": {"type": "integer", "description": "The unique ID of the user."},  
-                    "username": {"type": "string", "description": "The username of the user."},  
-                    "email": {"type": "string", "description": "The email address of the user."},  
-                    "message": {"type": "string", "description": "A success message indicating the token is valid."},  
-                },  
-                "description": "If the token is valid, the API returns the user's information and a success message.",  
-            },  
-            status.HTTP_401_UNAUTHORIZED: {  
-                "type": "string",  
-                "description": "The access token is either invalid, expired, or missing.",  
-            },  
-        },  
-        tags=["Authentication"],  
-    )  
-    def get(self, request):  
-        user = request.user  
-        return Response({  
-            "user_id": user.id,  
-            "username": user.username,  
-            "email": user.email,  
-            "message": "Token is valid."  
-        }, status=status.HTTP_200_OK)
     
-
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
     @extend_schema(
-        summary="User Logout",
-        description="Logout user and blacklist the refresh token",
-        request={
-            'type': 'object',
-            'properties': {
-                'refresh': {'type': 'string', 'description': '刷新令牌'},
-            },
-            'required': ['refresh'],
-        },
+        summary="Logout",
+        description="blacklist refresh token",
+        request=inline_serializer(
+            name='LogoutRequest',
+            fields={
+                'refresh': serializers.CharField(help_text='refresh token')
+            }
+        ),examples=[
+            OpenApiExample(
+                name='Logout Request Example',
+                summary="Standard Logout Request",
+                description="Logout using refresh token",
+                value={
+                    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                request_only=True,
+            )
+        ],
         responses={
-            status.HTTP_200_OK: {
-                'type': 'object',
-                'properties': {
-                    'message': {'type': 'string', 'description': '登出成功消息'},
-                },
-            },
-            status.HTTP_400_BAD_REQUEST: {
-                'type': 'object',
-                'properties': {
-                    'error': {'type': 'string', 'description': '错误信息'},
-                },
-            },
+            200: OpenApiResponse(
+                description="Logout successfully",
+                examples=[
+                    OpenApiExample(
+                        "Success Response",
+                        value={
+                            "message": "Logout successfully"
+                        }
+                    )
+                ]
+            ),400: OpenApiResponse(
+                description="Request error",
+                examples=[
+                    OpenApiExample(
+                        "Error Response",
+                        value={
+                            "error": "Refresh token is required"
+                        }
+                    )
+                ]
+            )
         },
         tags=["Authentication"],
     )
@@ -202,8 +183,11 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
             
+            if token.blacklisted:
+                return Response({'message': 'Token already blacklisted'})
+            
             return Response(
-                {'message': '成功登出'}, 
+                {'message': 'Logout successfully'}, 
                 status=status.HTTP_200_OK
             )
         except Exception as e:

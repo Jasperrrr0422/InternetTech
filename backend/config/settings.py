@@ -32,6 +32,7 @@ APPEND_SLASH = True
 
 AUTH_USER_MODEL = 'users.User'
 
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,11 +42,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'watson',
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
+    'celery',
+    'django_celery_results',
     'users',
     'bookings',
     'payments',
@@ -63,7 +67,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [  
         'rest_framework_simplejwt.authentication.JWTAuthentication' 
     ],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'  
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',  
+    'PAGE_SIZE': 12,  
 } 
 
 SIMPLE_JWT = {  
@@ -72,6 +78,22 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 } 
+  
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'properties.views': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+        },
+    },
+}
 
 SPECTACULAR_SETTINGS = {  
     'TITLE': 'EasyBook API',  
@@ -87,6 +109,14 @@ SPECTACULAR_SETTINGS = {
 AUTHENTICATION_BACKENDS = [  
     'django.contrib.auth.backends.ModelBackend',  
 ] 
+
+# Celery设置  
+CELERY_BROKER_URL = 'redis://localhost:6379/0' 
+CELERY_RESULT_BACKEND = 'django-db' 
+CELERY_ACCEPT_CONTENT = ['json']  
+CELERY_TASK_SERIALIZER = 'json'  
+CELERY_RESULT_SERIALIZER = 'json'  
+CELERY_TIMEZONE = 'Asia/Shanghai'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
