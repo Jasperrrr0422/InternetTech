@@ -19,7 +19,7 @@ from django.views.decorators.cache import cache_page
 from watson import search as watson
 
 class HotelListAPIView(APIView):  
-    permission_classes = [IsAuthenticated, IsOwnerRole]  
+    permission_classes = [IsAuthenticated]  
     pagination_class = HotelPagination
 
     @extend_schema(  
