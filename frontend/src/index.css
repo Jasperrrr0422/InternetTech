@@ -248,3 +248,8 @@ code {
   font-size: 1.2rem;
   color: #ffcc00;
 }
+.card-img-top {
+  object-fit: cover;
+  height: 350px;
+  width: 100%;
+}

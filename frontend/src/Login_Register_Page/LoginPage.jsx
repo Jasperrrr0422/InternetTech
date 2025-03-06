@@ -22,11 +22,12 @@ export default function LoginPage() {
         localStorage.setItem("refresh_token", response.refresh);
         localStorage.setItem("user_id", response.user_id);
         localStorage.setItem("username", response.username);
-        if (role === "user") {
+        localStorage.setItem("role", response.role)
+        if (response.role === "user") {
           navigate("/userpage");
-        } else if (role === "owner") {
+        } else if (response.role === "owner") {
           navigate("/register");
-        } else if (role === "admin") {
+        } else if (response.role === "admin") {
           navigate("/");
         } else {
           navigate("/login"); 

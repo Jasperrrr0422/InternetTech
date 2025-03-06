@@ -180,7 +180,7 @@ class HotelListAPIView(APIView):
                     context={'request': request}  
                 )  
 
-                return paginator.get_paginated_response(serializer.data,status=status.HTTP_200_OK)
+                return paginator.get_paginated_response(serializer.data)
                     
             except Exception as e:  
                 return Response({  

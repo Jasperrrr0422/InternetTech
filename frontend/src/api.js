@@ -51,32 +51,21 @@ export async function login(username, password) {
       throw error;
     }
   }
-  export async function getHotelList({ page = 1, pageSize = 12 }) {
-    let token = localStorage.getItem("access_token");
-    console.log(token)
 
-  
-    const url = `http://127.0.0.1:8000/api/properties/hotels/list/?page=${page}&page_size=${pageSize}`;
+
+// Get Hotel list api
+  export async function getHotelList(page = 1, pageSize = 12) {
+    let token = localStorage.getItem("access_token");
+    const url = `/api/properties/hotels/list/?page=${page}&page_size=${pageSize}`;
   
     try {
-      let response = await fetch(url, {
+      let response = await fetch(`${BASE_URL}${url}`, {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${token}`,  // 🔥 确保这里有 token
+          "Authorization": `Bearer ${token}`,  
           "Content-Type": "application/json",
         },
       });
-  
-      if (response.status === 401) {
-        console.warn("403 Forbidden. Token may be invalid.");
-       
-     
-        return;
-      }
-  
-      if (!response.ok) {
-        throw new Error("Failed to fetch hotel list");
-      }
   
       return await response.json();
     } catch (error) {
