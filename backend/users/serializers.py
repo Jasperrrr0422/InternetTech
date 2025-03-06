@@ -31,7 +31,11 @@ class UserLoginSerializer(TokenObtainPairSerializer):
         # 添加自定义响应字段  
         data.update({  
             "user_id": self.user.id,  
-            "username": self.user.username  
+            "username": self.user.username,
+            "role": self.user.role,
+            "email": self.user.email,
+            "first_name": self.user.first_name,
+            "last_name": self.user.last_name
         })  
         return data 
 
