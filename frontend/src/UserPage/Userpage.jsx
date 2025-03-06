@@ -1,15 +1,14 @@
-import React, { useState } from "react";
 import Navbar from "../assets/Components/Navbar";
 
-export default function HomePage() {
+export default function UserPage() {
+    const username = localStorage.getItem("username");
   return (
     <div className="homepage-container">
-      {/* Navbar */}
-      <Navbar user={null} />
-
+      <Navbar /> 
       {/* Search Bar */}
       <div className="container mt-4">
         <div className="row mb-4 search-container">
+        <h2>Welcome, {username}!</h2>
           <div className="col">
             <div className="input-group">
               <span className="input-group-text">Where</span>

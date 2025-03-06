@@ -26,11 +26,9 @@ export async function login(username, password) {
     });
   }
   export async function register(username, email, password, first_name, last_name, role) {
-    const url = "api/auth/register/"; // 确保URL结尾带 `/`
+    const url = "api/auth/register/"; 
     
     const body = JSON.stringify({ username, email, password, first_name, last_name, role });
-  
-    console.log("Register API Request:", body); // 先打印请求的数据
   
     try {
       const response = await fetch(`${BASE_URL}${url}`, {
