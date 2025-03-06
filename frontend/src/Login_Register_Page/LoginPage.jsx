@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import House from "../assets/HouseLogo/Houselogo.jsx";
@@ -22,8 +22,6 @@ export default function LoginPage() {
         localStorage.setItem("refresh_token", response.refresh);
         localStorage.setItem("user_id", response.user_id);
         localStorage.setItem("username", response.username);
-
-     
         if (role === "user") {
           navigate("/userpage");
         } else if (role === "owner") {
