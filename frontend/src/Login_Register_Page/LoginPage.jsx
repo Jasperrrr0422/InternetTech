@@ -4,7 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import House from "../assets/HouseLogo/Houselogo.jsx"
 
 export default function LoginPage() {
-  const [role, setRole] = useState("User");
+  const [role, setRole] = useState("user");
   const navigate = useNavigate();
 
   return (
@@ -24,7 +24,7 @@ export default function LoginPage() {
           <h2 className="text-center mb-4">Sign in</h2>
 
           <div className="btn-group w-100 mb-4">
-            {["User", "Owners", "Admins"].map((r) => (
+            {["user", "owner", "admin"].map((r) => (
               <button
                 key={r}
                 className={`btn ${role === r ? "btn-primary" : "btn-outline-secondary"}`}
