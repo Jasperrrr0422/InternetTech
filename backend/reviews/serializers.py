@@ -2,6 +2,9 @@ from rest_framework import serializers
 from .models import Review
 from users.serializers import UserSerializer
 from properties.models import Hotel
+from drf_spectacular.utils import extend_schema_field, OpenApiTypes
+
+
 class ReviewCreateSerializer(serializers.ModelSerializer):  
     parent = serializers.PrimaryKeyRelatedField(  
         queryset=Review.objects.all(),  
@@ -35,8 +38,7 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
         model = Review  
         fields = ['user', 'comment', 'created_at', 'children']  
 
-
-# 酒店评论列表序列化器  
+ 
 class HotelReviewsSerializer(serializers.ModelSerializer):  
     reviews = serializers.SerializerMethodField()
     hotel_id = serializers.IntegerField(source='id', read_only=True)
@@ -46,6 +48,7 @@ class HotelReviewsSerializer(serializers.ModelSerializer):
         model = Hotel  
         fields = ['hotel_id', 'name', 'reviews']  
     
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_reviews(self, obj):  
         # 只获取直接评论酒店的评论（没有父评论的）  
         top_level_reviews = obj.reviews.filter(parent=None).select_related('user')  

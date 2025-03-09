@@ -476,6 +476,7 @@ class HotelDetailAPIView(APIView):
         summary="Get Hotel Detail",
         description="Get detailed information about a specific hotel. All authenticated users can access.",
         tags=["Hotel Management"],
+        operation_id="hotel-detail",
         parameters=[
             OpenApiParameter(
                 name='pk',
@@ -484,6 +485,7 @@ class HotelDetailAPIView(APIView):
                 description='Hotel ID'
             ),
         ],
+        
         responses={
             200: OpenApiResponse(
                 response=HotelSerializer,
@@ -649,5 +651,10 @@ class HotelDetailAPIView(APIView):
         hotel = self.get_object(pk)
         hotel.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+
+
+
     
     
