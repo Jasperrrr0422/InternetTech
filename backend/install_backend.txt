@@ -1,4 +1,0 @@
-celery
-django-watson
-drf-spectacular
-django-celery-results

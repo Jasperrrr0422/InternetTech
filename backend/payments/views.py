@@ -8,15 +8,15 @@ from users.permissions import IsUserRole
 from django.shortcuts import get_object_or_404
 from decimal import Decimal 
 from django.db import transaction
-from payments.tasks import send_payment_confirmation_email
+from payments.tasks import send_order_confirmation_email
 
 paypalrestsdk.configure({
     "mode": "sandbox",
-    "client_id": settings.PAYPAL_CLIENT_ID,
-    "client_secret": settings.PAYPAL_CLIENT_SECRET
+    "client_id": "AT2CWuH6c2URfyHAFcpFDpMwM-N78CrVrcI82yw6XGu3Gkj0HYzQnDI7CqEXKXaElTBhgn5Qzp-YYZ8D",
+    "client_secret": "EDWrROzoxgoZkzuMnhiUE-Pg31B9jcbVxtVHDHveIe5meCsQsxMfb5EJE-g9s-XzSaXQpOaZ-0xcZXy5"
 })
 
-class PayPalPaymentView(APIView):
+class PayPalCreateView(APIView):
     permission_classes = [IsAuthenticated, IsUserRole]
     def post(self, request):
         try:
@@ -73,7 +73,7 @@ class PayPalExecuteView(APIView):
 
                     
 
-                    send_payment_confirmation_email.delay(order.id, order.user.email)
+                    send_order_confirmation_email.delay(order.id, order.user.email)
 
                     return Response({
                         'message': 'Payment completed successfully',
