@@ -139,7 +139,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -208,4 +208,14 @@ MEDIA_URL = '/media/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
+FRONTEND_URL = 'http://localhost:3000' 
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # 或其他邮件服务器
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'yuanjiayong0226@gmail.com'
+EMAIL_HOST_PASSWORD = 'amle pgtz pkbd iqwa'  # Gmail需要使用应用专用密码
+DEFAULT_FROM_EMAIL = 'yuanjiayong0226@gmail.com'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

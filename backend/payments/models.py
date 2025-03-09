@@ -11,4 +11,4 @@ class Commission(models.Model):
     def save(self, *args, **kwargs):  
         # 自动计算佣金金额  
         self.commission_amount = self.order.total_price * self.commission_rate  
-        super().save(*args, **kwargs)  
+        super().save(*args, **kwargs)

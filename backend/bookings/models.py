@@ -3,7 +3,8 @@ from django.db.models import Avg
 
 # Create your models here.
 class Order(models.Model):  
-    STATUS_CHOICES = (    
+    STATUS_CHOICES = (
+        ('pending', 'pending'),
         ('paid', 'paid'),  
         ('completed', 'completed'),  
         ('cancelled', 'cancelled'),  
@@ -15,22 +16,7 @@ class Order(models.Model):
     check_out_date = models.DateField()  
     room_count = models.IntegerField( default=1)  
     total_price = models.DecimalField(max_digits=10, decimal_places=2)  
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='paid')  
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')  
     created_at = models.DateTimeField(auto_now_add=True)
     rating = models.IntegerField(null=True, blank=True, choices=[(i, i) for i in range(1, 6)])
 
-    def save(self, *args, **kwargs):
-        is_new_rating = self.id is None or Order.objects.get(id=self.id).rating != self.rating
-        super().save(*args, **kwargs)
-        if is_new_rating and self.rating is not None:
-            self.update_hotel_rating()
-
-    def update_hotel_rating(self):
-        avg_rating = Order.objects.filter(
-            hotel=self.hotel,
-            rating__isnull=False
-        ).aggregate(Avg('rating'))['rating__avg']
-        
-        if avg_rating is not None:
-            self.hotel.rating = round(avg_rating)
-            self.hotel.save()
