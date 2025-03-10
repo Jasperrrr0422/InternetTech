@@ -13,13 +13,13 @@ class HotelSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()  
     owner = serializers.PrimaryKeyRelatedField(read_only=True)   
     amentities = AmentitySerializer(many=True, required=False)
-
+    owner_name = serializers.SerializerMethodField()
     class Meta:  
         model = Hotel  
         fields = [  
             'id', 'name', 'description', 'address',  
             'image_url', 'price_per_night', 'total_rooms',  
-            'total_beds', 'owner', 'amentities', 'image', 'rating'
+            'total_beds', 'owner','owner_name', 'amentities', 'image', 'rating'
         ]  
         read_only_fields = ['image_url', 'owner']  
 
@@ -37,6 +37,9 @@ class HotelSerializer(serializers.ModelSerializer):
         
         return super().to_internal_value(data)
 
+    def get_owner_name(self, obj):
+        return obj.owner.username
+    
     def validate_amentities(self, value):
         """
         验证amenities并转换为对象列表

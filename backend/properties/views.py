@@ -1,7 +1,7 @@
 from rest_framework.views import APIView  
 from rest_framework import status  
 from rest_framework.response import Response  
-from rest_framework.permissions import IsAuthenticated  
+from rest_framework.permissions import IsAuthenticated, AllowAny  
 from django.shortcuts import get_object_or_404  
 from .models import Hotel, Amentity
 from users.permissions import IsOwnerRole, IsAdminRole, IsUserRole
@@ -11,7 +11,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExampl
 from rest_framework import status  
 from rest_framework.views import APIView  
 from rest_framework.response import Response  
-from rest_framework.permissions import IsAuthenticated  
+from rest_framework.permissions import IsAuthenticated,AllowAny  
 from .pagination import HotelPagination
 from django.core.cache import cache   
 from django.utils.decorators import method_decorator  
@@ -19,7 +19,7 @@ from django.views.decorators.cache import cache_page
 from watson import search as watson
 
 class HotelListAPIView(APIView):  
-    permission_classes = [IsAuthenticated]  
+    permission_classes = [AllowAny]  
     pagination_class = HotelPagination
 
     @extend_schema(  
@@ -125,78 +125,66 @@ class HotelListAPIView(APIView):
         }  
     )
     def get(self, request):
-        user = request.user
-        if user.role == 'user':
-            try:  
-                q = request.query_params.get('q', '')  
-                min_price = request.query_params.get('min_price')  
-                max_price = request.query_params.get('max_price')  
-                ordering = request.query_params.get('ordering', '-created_at')  
-    
-                # 使用 watson 进行全文搜索  
+        try:
+            q = request.query_params.get('q', '')  
+            min_price = request.query_params.get('min_price')  
+            max_price = request.query_params.get('max_price')  
+            ordering = request.query_params.get('ordering', '-created_at')  
+
+            if request.user.is_authenticated and request.user.role == 'owner':
+                queryset = Hotel.objects.filter(owner=request.user).select_related('owner')
+            else:
                 if q and q.strip():
-                    search_results = watson.search(q, models = (Hotel,))
+                    search_results = watson.search(q, models=(Hotel,))
                     hotel_ids = [result.object_id_int for result in search_results]
                     queryset = Hotel.objects.filter(id__in=hotel_ids).select_related('owner')
-
                 else:  
-                    queryset = Hotel.objects.all().select_related('owner')  
+                    queryset = Hotel.objects.all().select_related('owner')
 
-                # 价格筛选部分不变  
-                if min_price:  
-                    try:  
-                        queryset = queryset.filter(price_per_night__gte=float(min_price))  
-                    except ValueError:  
-                        return Response({  
-                            'code': 400,  
-                            'message': '最低价格参数无效',  
-                            'data': None  
-                        }, status=status.HTTP_400_BAD_REQUEST)  
+            if min_price:  
+                try:  
+                    queryset = queryset.filter(price_per_night__gte=float(min_price))  
+                except ValueError:  
+                    return Response({  
+                        'code': 400,  
+                        'message': '最低价格参数无效',  
+                        'data': None  
+                    }, status=status.HTTP_400_BAD_REQUEST)  
 
-                if max_price:  
-                    try:  
-                        queryset = queryset.filter(price_per_night__lte=float(max_price))  
-                    except ValueError:  
-                        return Response({  
-                            'code': 400,  
-                            'message': '最高价格参数无效',  
-                            'data': None  
-                        }, status=status.HTTP_400_BAD_REQUEST)  
+            if max_price:  
+                try:  
+                    queryset = queryset.filter(price_per_night__lte=float(max_price))  
+                except ValueError:  
+                    return Response({  
+                        'code': 400,  
+                        'message': '最高价格参数无效',  
+                        'data': None  
+                    }, status=status.HTTP_400_BAD_REQUEST)  
 
-                # 排序和分页部分不变  
-                if ordering:  
-                    valid_ordering_fields = ['price_per_night', '-price_per_night',   
-                                        'total_rooms', '-total_rooms',  
-                                        'created_at', '-created_at']  
-                    if ordering in valid_ordering_fields:  
-                        queryset = queryset.order_by(ordering)  
+            if ordering:  
+                valid_ordering_fields = ['price_per_night', '-price_per_night',   
+                                    'total_rooms', '-total_rooms',  
+                                    'created_at', '-created_at']  
+                if ordering in valid_ordering_fields:  
+                    queryset = queryset.order_by(ordering)  
 
-                paginator = self.pagination_class()  
-                page_data = paginator.paginate_queryset(queryset, request)  
-                
-                serializer = HotelSerializer(  
-                    page_data,  
-                    many=True,  
-                    context={'request': request}  
-                )  
-
-                return paginator.get_paginated_response(serializer.data)
-                    
-            except Exception as e:  
-                return Response({  
-                    'code': 500,  
-                    'message': 'server error',  
-                    'data': {'error': str(e)}  
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
-        else:
-            hotels = Hotel.objects.filter(owner=request.user)
+            paginator = self.pagination_class()  
+            page_data = paginator.paginate_queryset(queryset, request)  
+            
             serializer = HotelSerializer(  
-                hotels,  
+                page_data,  
                 many=True,  
                 context={'request': request}  
             )  
+
             return paginator.get_paginated_response(serializer.data)
-        
+                
+        except Exception as e:  
+            return Response({  
+                'code': 500,  
+                'message': 'server error',  
+                'data': {'error': str(e)}  
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @extend_schema(  
         summary="Create New Hotel",  
