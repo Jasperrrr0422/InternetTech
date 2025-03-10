@@ -76,3 +76,27 @@ export async function getHotelDetail(id) {
       method: "GET",
     });
   }
+
+export async function postHotelInfomation({name,description,
+  address,price_per_night,total_rooms,total_beds,amentities,image}) {
+    const price = Number(price_per_night);
+    const rooms = Number(total_rooms);
+    const beds = Number(total_beds);
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("address", address);
+    formData.append("price_per_night", price); 
+    formData.append("total_rooms", rooms);
+    formData.append("total_beds", beds);
+    formData.append("amenities", amentities);
+  
+    if (image) {
+      formData.append("image", image);
+    }
+  
+    return request("/api/properties/hotel/list/", {
+      method: "POST",
+      body: formData,
+    });
+  }
