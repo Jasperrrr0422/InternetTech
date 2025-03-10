@@ -72,7 +72,8 @@ class OrderRatingView(APIView):
             200: OpenApiResponse(description="Rating submitted successfully"),
             400: OpenApiResponse(description="Invalid rating or order not completed"),
             404: OpenApiResponse(description="Order not found")
-        }
+        },
+        tags=['Orders']
     )
     def post(self, request, order_id):
         try:

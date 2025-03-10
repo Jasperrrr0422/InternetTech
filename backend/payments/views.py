@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from decimal import Decimal 
 from django.db import transaction
 from payments.tasks import send_order_confirmation_email
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse, OpenApiExample
 
 paypalrestsdk.configure({
     "mode": "sandbox",
@@ -18,6 +19,56 @@ paypalrestsdk.configure({
 
 class PayPalCreateView(APIView):
     permission_classes = [IsAuthenticated, IsUserRole]
+
+    @extend_schema(
+        summary="Create PayPal Payment",
+        description="Create a PayPal payment for a pending order",
+        tags=["Payments"],
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'order_id': {'type': 'integer', 'description': 'Order ID'}
+                },
+                'required': ['order_id']
+            }
+        },
+        responses={
+            200: OpenApiResponse(
+                description="Payment created successfully",
+                examples=[
+                    OpenApiExample(
+                        "Success Response",
+                        value={
+                            'approval_url': 'https://www.sandbox.paypal.com/...'
+                        }
+                    )
+                ]
+            ),
+            400: OpenApiResponse(
+                description="Invalid request or payment creation failed",
+                examples=[
+                    OpenApiExample(
+                        "Error Response",
+                        value={
+                            'error': 'Payment creation failed'
+                        }
+                    )
+                ]
+            ),
+            404: OpenApiResponse(
+                description="Order not found",
+                examples=[
+                    OpenApiExample(
+                        "Not Found Error",
+                        value={
+                            'error': 'Order not found'
+                        }
+                    )
+                ]
+            )
+        }
+    )
     def post(self, request):
         try:
             with transaction.atomic():
@@ -54,6 +105,67 @@ class PayPalCreateView(APIView):
             return Response({'error': str(e)}, status=400)
 
 class PayPalExecuteView(APIView):
+    @extend_schema(
+        summary="Execute PayPal Payment",
+        description="Execute a PayPal payment after user approval",
+        tags=["Payments"],
+        parameters=[
+            OpenApiParameter(
+                name='order_id',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description='Order ID'
+            ),
+            OpenApiParameter(
+                name='paymentId',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='PayPal Payment ID'
+            ),
+            OpenApiParameter(
+                name='PayerID',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='PayPal Payer ID'
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                description="Payment executed successfully",
+                examples=[
+                    OpenApiExample(
+                        "Success Response",
+                        value={
+                            'message': 'Payment completed successfully',
+                            'order_id': 1
+                        }
+                    )
+                ]
+            ),
+            400: OpenApiResponse(
+                description="Invalid request or payment execution failed",
+                examples=[
+                    OpenApiExample(
+                        "Error Response",
+                        value={
+                            'error': 'Payment execution failed'
+                        }
+                    )
+                ]
+            ),
+            404: OpenApiResponse(
+                description="Order not found",
+                examples=[
+                    OpenApiExample(
+                        "Not Found Error",
+                        value={
+                            'error': 'Order not found'
+                        }
+                    )
+                ]
+            )
+        }
+    )
     def get(self, request):
         try:
             with transaction.atomic():
