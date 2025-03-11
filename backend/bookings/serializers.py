@@ -13,7 +13,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     guests = serializers.IntegerField(write_only=True)
     class Meta:
         model = Order
-        fields = ['hotel', 'check_in_date', 'check_out_date', 'guests']
+        fields = ['id', 'hotel', 'check_in_date', 'check_out_date', 'guests']
 
     def create(self, validated_data):
         hotel = validated_data.pop('hotel')
