@@ -1,23 +1,72 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getHotelList } from "../api";
+import Pagination from "../assets/Components/Pagination";
+import HotelList from "../assets/Components/HotelList/HotelList";
 
 export default function HostPage() {
   const [activeTab, setActiveTab] = useState("property");
   const [properties, setProperties] = useState([]);
   const [todayRevenue, setTodayRevenue] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
-  const ownerId = localStorage.getItem("owner_id"); 
+  const [hotels, setHotels] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [showFilter, setShowFilter] = useState(false);
+  const [ownerName, setOwnerName] = useState(""); // State for owner's name
+  const [filters, setFilters] = useState({
+    q: "", // Search query
+    min_price: "",
+    max_price: "",
+    ordering: "", // Sorting option
+    check_in: "",
+    check_out: "",
+    guests: "",
+  });
   const navigate = useNavigate();
 
   const handleUpload = () => {
-    navigate("/ownerupload")
-  }
+    navigate("/ownerupload");
+  };
+
+  // **Fetch the owner name from localStorage**
+  useEffect(() => {
+    const storedOwnerName = localStorage.getItem("username");
+    setOwnerName(storedOwnerName || "Owner");
+    fetchHotels();
+  }, [currentPage]);
+
+  // **Fetch hotels based on filters and current page**
+  const fetchHotels = async () => {
+    try {
+      const data = await getHotelList(currentPage, 12, filters);
+      setHotels(data.data || []);
+      setTotalPages(data.pagination?.total_pages || 1);
+    } catch (error) {
+      console.error("Error fetching hotels:", error);
+    }
+  };
+
+  // **Logout function**
+  const handleLogout = () => {
+    localStorage.clear(); // Clear the localStorage
+    window.location.href = "/"; // Redirect to the homepage
+  };
+
   return (
     <div className="container mt-4">
+      
+     
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2>Host Page</h2>
+        <span>Welcome, {ownerName}</span> {/* Display owner name */}
         <input type="text" className="form-control w-25" placeholder="Search..." />
+        {/* Logout Button */}
+    
+        <button className="btn btn-danger" href="#" onClick={handleLogout}>
+          Log out
+        </button>
       </div>
 
       {/* Tab Navigation */}
@@ -44,37 +93,8 @@ export default function HostPage() {
       </div>
 
       {/* Content Area */}
-      <div className="content">
-        {activeTab === "property" ? (
-          <div>
-            <h4>My Properties</h4>
-            {properties.length > 0 ? (
-              <div className="row">
-                {properties.map((property) => (
-                  <div key={property.id} className="col-md-4 mb-3">
-                    <div className="card shadow-sm">
-                      <img src={property.image_url} alt="Property" className="card-img-top" />
-                      <div className="card-body">
-                        <h5 className="card-title">{property.name}</h5>
-                        <p>{property.address}</p>
-                        <p>Price per night: <strong>${property.price_per_night}</strong></p>
-                        <button className="btn btn-warning">Edit</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p>No properties found</p>
-            )}
-          </div>
-        ) : (
-          <div>
-            <h4>Order Records</h4>
-            <p>No orders found</p>
-          </div>
-        )}
-      </div>
+      <HotelList hotels={hotels} />
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 }

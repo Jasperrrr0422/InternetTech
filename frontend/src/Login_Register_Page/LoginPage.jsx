@@ -26,7 +26,7 @@ export default function LoginPage() {
         if (response.role === "user") {
           navigate("/userpage");
         } else if (response.role === "owner") {
-          navigate("/register");
+          navigate("/owenermainpage");
         } else if (response.role === "admin") {
           navigate("/");
         } else {

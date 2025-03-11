@@ -1,7 +1,8 @@
 import Navbar from "../assets/Components/Navbar";
 import { useState, useEffect } from "react";
 import { getHotelList } from "../api";
-import { Link } from "react-router-dom";
+import HotelList from "../assets/Components/HotelList/HotelList";
+import Pagination from "../assets/Components/Pagination";
 export default function UserPage() {
   // State variables for user data, hotels, pagination, and filters
   const [username, setUsername] = useState("");
@@ -77,7 +78,7 @@ export default function UserPage() {
 
   return (
     <div className="homepage-container">
-      <Navbar />
+      <Navbar user={username}/>
       <div className="container mt-4">
         <h2>Welcome, {username}!</h2>
 
@@ -188,48 +189,9 @@ export default function UserPage() {
         )}
 
         {/* Hotel Listings */}
-        <div className="row row-cols-1 row-cols-md-3 g-4 listings-container">
-        {Array.isArray(hotels) && hotels.length > 0 ? (
-            hotels.map((hotel) => (
-            <div className="col" key={hotel.id}>
-                <Link to={`/hotel/${hotel.id}`} className="text-decoration-none">
-                <div className="card shadow-sm listing-card">
-                    <img src={hotel.image} className="card-img-top" alt="Listing" />
-                    <div className="card-body">
-                    <h5 className="card-title">{hotel.name}</h5>
-                    <p className="card-text">{hotel.address}</p>
-                    <p className="card-text price">Price: ${hotel.price_per_night}</p>
-                    <div className="d-flex justify-content-between align-items-center">
-                        <span className="fw-bold rating">⭐ {hotel.rating}</span>
-                    </div>
-                    </div>
-                </div>
-                </Link>
-            </div>
-            ))
-        ) : (
-            <p>No hotels found</p>
-        )}
-        </div>
-
+         <HotelList hotels={hotels} />
         {/* Pagination Controls */}
-        <div className="pagination-controls mt-4 d-flex justify-content-center">
-          <button
-            className="btn btn-outline-primary me-2"
-            onClick={handlePrevPage}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          <span className="mx-3">Page {currentPage} of {totalPages}</span>
-          <button
-            className="btn btn-outline-primary"
-            onClick={handleNextPage}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
-        </div>
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>
     </div>
   );

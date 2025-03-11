@@ -302,7 +302,7 @@ class HotelListAPIView(APIView):
 
     
 class AmentityListAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsOwnerRole, IsAdminRole]
+    permission_classes = [IsAuthenticated, IsOwnerRole]
 
     @extend_schema(
         summary="Get All Amenities",

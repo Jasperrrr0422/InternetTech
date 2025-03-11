@@ -76,27 +76,47 @@ export async function getHotelDetail(id) {
       method: "GET",
     });
   }
-
-export async function postHotelInfomation({name,description,
-  address,price_per_night,total_rooms,total_beds,amentities,image}) {
-    const price = Number(price_per_night);
-    const rooms = Number(total_rooms);
-    const beds = Number(total_beds);
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("address", address);
-    formData.append("price_per_night", price); 
-    formData.append("total_rooms", rooms);
-    formData.append("total_beds", beds);
-    formData.append("amenities", amentities);
-  
-    if (image) {
-      formData.append("image", image);
-    }
-  
-    return request("/api/properties/hotel/list/", {
-      method: "POST",
-      body: formData,
+  export async function createBooking(bookingData) {
+    const token = localStorage.getItem("access_token");
+    const url = `/api/bookings/orders/create/`;
+    return request(`/api/bookings/orders/create/`,{
+      method:"POST",
+      body: JSON.stringify({
+        hotel: parseInt(bookingData.hotel, 10), 
+        check_in_date: bookingData.check_in_date,
+        check_out_date: bookingData.check_out_date,
+        guests: parseInt(bookingData.guests, 10),
+      }),
+    })
+  }
+  export async function getAmenities() {
+    return request("/api/properties/amentities/", {
+      method: "GET",
     });
+  }
+  export async function postHotelInformation(formData) {
+    const token = localStorage.getItem("access_token");
+  
+    const headers = {
+      "Authorization": `Bearer ${token}`,
+      // 删除 'Content-Type'，让浏览器自动设置为 multipart/form-data
+    };
+  
+    try {
+      const response = await fetch(`${BASE_URL}/api/properties/hotels/list/`, {
+        method: "POST",
+        body: formData,
+        headers,
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Request failed");
+      }
+  
+      return response.json();
+    } catch (error) {
+      console.error("Upload error:", error);
+      throw error;
+    }
   }
