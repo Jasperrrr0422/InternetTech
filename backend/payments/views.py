@@ -81,8 +81,8 @@ class PayPalCreateView(APIView):
                         "payment_method": "paypal"
                     },
                     "redirect_urls": {
-                        "return_url": f"{settings.FRONTEND_URL}/payment/success?order_id={order.id}",
-                        "cancel_url": f"{settings.FRONTEND_URL}/payment/cancel?order_id={order.id}"
+                        "return_url": f"{settings.FRONTEND_URL}/userpage?order_id={order.id}",
+                        "cancel_url": f"{settings.FRONTEND_URL}/userpage?order_id={order.id}"
                     },
                     "transactions": [{
                         "amount": {
@@ -184,7 +184,6 @@ class PayPalExecuteView(APIView):
                     order.save()
 
                     
-
                     send_order_confirmation_email.delay(order.id, order.user.email)
 
                     return Response({
