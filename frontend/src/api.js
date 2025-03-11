@@ -76,30 +76,17 @@ export async function getHotelDetail(id) {
       method: "GET",
     });
   }
-  export async function createBooking(bookingData) {
-    const token = localStorage.getItem("access_token");
-    const url = `/api/bookings/orders/create/`;
-    return request(`/api/bookings/orders/create/`,{
-      method:"POST",
-      body: JSON.stringify({
-        hotel: parseInt(bookingData.hotel, 10), 
-        check_in_date: bookingData.check_in_date,
-        check_out_date: bookingData.check_out_date,
-        guests: parseInt(bookingData.guests, 10),
-      }),
-    })
-  }
-  export async function getAmenities() {
+
+export async function getAmenities() {
     return request("/api/properties/amentities/", {
       method: "GET",
     });
   }
-  export async function postHotelInformation(formData) {
+export async function postHotelInformation(formData) {
     const token = localStorage.getItem("access_token");
   
     const headers = {
       "Authorization": `Bearer ${token}`,
-      // 删除 'Content-Type'，让浏览器自动设置为 multipart/form-data
     };
   
     try {
@@ -120,3 +107,59 @@ export async function getHotelDetail(id) {
       throw error;
     }
   }
+export async function createPaypalPayment(orderId) {
+    try {
+      const response = await fetch("/api/payments/paypal/create/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          order_id: orderId,  
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create PayPal payment");
+      }
+  
+      return data;
+    } catch (error) {
+      console.error("Error creating PayPal payment:", error);
+      throw new Error("Payment creation failed");
+    }
+  }
+  export async function createBooking(bookingData) {
+    try {
+      const response = await request("/api/bookings/orders/create/", {
+        method: "POST",
+        body: JSON.stringify({
+          hotel: parseInt(bookingData.hotel, 10),
+          check_in_date: bookingData.check_in_date,
+          check_out_date: bookingData.check_out_date,
+          guests: parseInt(bookingData.guests, 10),
+        }),
+      });
+  
+      // 返回响应数据
+      return response;
+    } catch (error) {
+      console.error("Booking failed:", error);
+      throw error;
+    }
+  }
+  // api.js
+export async function fetchOrders() {
+  try {
+    return request("/api/bookings/orders",{
+      method:"GET",
+
+    });  
+
+
+  } catch (error) {
+    console.error(error);
+  }
+}

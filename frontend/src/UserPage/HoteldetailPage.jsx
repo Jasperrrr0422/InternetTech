@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
-import { getHotelDetail, createBooking } from "../api";
+import { getHotelDetail, createBooking,createPaypalPayment } from "../api";
 
 export default function HotelDetailPage() {
   const { id } = useParams(); // 获取URL中的酒店ID
@@ -47,34 +47,43 @@ export default function HotelDetailPage() {
   
     try {
       const bookingData = {
-        hotel: parseInt(id, 10), // 确保 hotel 是整数
+        hotel: parseInt(id, 10),
         check_in_date: checkIn,
         check_out_date: checkOut,
-        guests: parseInt(guests, 10) || 1, // 确保 guests 是整数，默认最少 1 人
+        guests: parseInt(guests, 10) || 1,
       };
-  
+      console.log(bookingData);
       const response = await createBooking(bookingData);
+      console.log("Booking response:", response); // Add this for debugging
   
-      console.log("Booking successful:", response);
+      const orderId = response.id;
   
-      // 预订成功后跳转到支付页面
-      navigate("/payment", {
-        state: {
-          totalPrice,
-          checkIn,
-          checkOut,
-          guests: bookingData.guests, // 传递转换后的 guests
-          hotelName: hotel?.name,
-        },
-      });
+      if (orderId) {
+        const paymentResponse = await createPaypalPayment(orderId);
+        if (paymentResponse.status === 200) {
+          navigate("/payment", {
+            state: {
+              totalPrice,
+              checkIn,
+              checkOut,
+              guests: bookingData.guests,
+              hotelName: hotel?.name,
+              orderId: orderId,
+            },
+          });
+        } else {
+          throw new Error("Payment creation failed");
+        }
+      } else {
+        throw new Error("Failed to create booking");
+      }
     } catch (err) {
-      console.error("Booking failed:", err);
+      console.error("Booking failed:", err); // Add this for debugging
       setError("Failed to create booking. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
   if (!hotel) {
     return <p>Loading...</p>;
   }

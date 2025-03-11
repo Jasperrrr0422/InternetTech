@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-
+import { Link } from "react-router-dom";
 export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [username, setUsername] = useState(null);
@@ -32,7 +32,7 @@ export default function Navbar() {
               {dropdownOpen && (
                 <ul className="dropdown-menu dropdown-menu-end show" style={{ position: "absolute", right: 0 }}>
                   <li><a className="dropdown-item" href="#">Message</a></li>
-                  <li><a className="dropdown-item" href="#">Order History</a></li>
+                  <li> <Link to="/order-history" className="dropdown-item">Order History</Link></li>
                   <li>
                     <a className="dropdown-item" href="#" onClick={() => {
                       localStorage.clear(); 

@@ -7,6 +7,7 @@ import UserPage from './UserPage/Userpage';
 import OwnermainPage from './OwnerPage/OwnerMainPage'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PostHotelInfo from './OwnerPage/PostHotelInfo';
+import OrderHistoryPage from './UserPage/OrderHistoryPage' ;
 function App() {
   return (
     <Router>
@@ -19,6 +20,7 @@ function App() {
         <Route path='/payment' element={<PaymentPage/>}> </Route>
         <Route path='/owenermainpage' element={<OwnermainPage/>}> </Route>
         <Route path='/ownerupload' element={<PostHotelInfo/>}> </Route>
+        <Route path='/order-history' element={<OrderHistoryPage/>}> </Route>
       </Routes>
     </Router>
   );
