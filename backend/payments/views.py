@@ -5,8 +5,6 @@ from django.conf import settings
 import paypalrestsdk
 from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsUserRole
-from django.shortcuts import get_object_or_404
-from decimal import Decimal 
 from django.db import transaction
 from payments.tasks import send_order_confirmation_email
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse, OpenApiExample
@@ -81,8 +79,8 @@ class PayPalCreateView(APIView):
                         "payment_method": "paypal"
                     },
                     "redirect_urls": {
-                        "return_url": f"{settings.FRONTEND_URL}/userpage?order_id={order.id}",
-                        "cancel_url": f"{settings.FRONTEND_URL}/userpage?order_id={order.id}"
+                        "return_url": f"{settings.FRONTEND_URL}/userpage?success=true&order_id={order.id}",
+                        "cancel_url": f"{settings.FRONTEND_URL}/userpage?success=false&order_id={order.id}"
                     },
                     "transactions": [{
                         "amount": {

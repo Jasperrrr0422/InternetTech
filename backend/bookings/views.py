@@ -136,3 +136,19 @@ class OrderCompletedView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         
+class OrderCancelView(APIView):
+    permission_classes = [IsAuthenticated, IsUserRole]
+    @extend_schema(
+        summary="Cancel an order",
+        description="Cancel an order",
+        tags=['Orders']
+    )
+    def post(self, request, order_id):
+        try:
+            with transaction.atomic():
+                order = get_object_or_404(Order, id=order_id, user=request.user, status='paid')
+                order.status = 'canceled'
+                order.save()
+                return Response(status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
