@@ -7,7 +7,7 @@ class Order(models.Model):
         ('pending', 'pending'),
         ('paid', 'paid'),  
         ('completed', 'completed'),  
-        ('cancelled', 'cancelled'),  
+        ('canceled', 'canceled'),  
     )
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='orders')  
