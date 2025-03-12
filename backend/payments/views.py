@@ -173,7 +173,14 @@ class PayPalExecuteView(APIView):
                 
                 # 获取订单
                 order = Order.objects.get(id=order_id, user=request.user)
-            
+
+
+                if order.status == "paid":
+                    return Response({  
+                    'message': 'Payment already processed',  
+                    'order_id': order_id  
+                }) 
+                
                 # 执行支付
                 payment = paypalrestsdk.Payment.find(payment_id)
                 if payment.execute({"payer_id": payer_id}):
@@ -182,11 +189,10 @@ class PayPalExecuteView(APIView):
                     order.save()
 
                     
-                    send_order_confirmation_email.delay(order.id, order.user.email)
-
+                    send_order_confirmation_email.delay(order_id)
                     return Response({
                         'message': 'Payment completed successfully',
-                        'order_id': order.id
+                        'order_id': order_id
                     })
                 else:
                     return Response({'error': payment.error}, status=400)
