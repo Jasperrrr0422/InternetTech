@@ -1,8 +1,11 @@
 import Navbar from "../assets/Components/Navbar";
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { getHotelList } from "../api";
 import HotelList from "../assets/Components/HotelList/HotelList";
 import Pagination from "../assets/Components/Pagination";
+import { executePayment } from "../api";
+
 export default function UserPage() {
   // State variables for user data, hotels, pagination, and filters
   const [username, setUsername] = useState("");
@@ -10,6 +13,10 @@ export default function UserPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showFilter, setShowFilter] = useState(false); // Toggle filter dropdown
+  const { search } = useLocation(); // Get URL parameters 
+  const [paymentStatus, setPaymentStatus] = useState(null); // Record payment status 
+  const [showSuccessModal, setShowSuccessModal] = useState(false); // Control Popup
+  const [loading, setLoading] = useState(false);
 
   // Filter options for search
   const [filters, setFilters] = useState({
@@ -32,6 +39,31 @@ export default function UserPage() {
   useEffect(() => {
     fetchHotels();
   }, [currentPage]);
+  useEffect(() => {
+    const queryParams = new URLSearchParams(search);
+    const success = queryParams.get("success");
+    const orderId = queryParams.get("order_id");
+    const paymentId = queryParams.get("paymentId"); 
+    const payerId = queryParams.get("PayerID"); 
+    console.log("Executing PayPal payment with:", orderId, paymentId, payerId);
+    if (success === "true" && orderId && paymentId && payerId) {
+      setLoading(true);
+      executePayment(orderId, paymentId, payerId)
+        .then(() => {
+          setPaymentStatus(`Payment Successful! Order ID: ${orderId}`);
+          setShowSuccessModal(true);
+        })
+        .catch((error) => {
+          console.error("Payment execution failed:", error);
+          setPaymentStatus("Payment verification failed.");
+          setShowSuccessModal(true);
+        })
+        .finally(() => setLoading(false));
+    } else if (success === "false") {
+      setPaymentStatus("Payment Failed.");
+      setShowSuccessModal(true);
+    }
+  }, [search]);
 
   // Fetch hotel list from API
   const fetchHotels = async () => {
@@ -185,6 +217,13 @@ export default function UserPage() {
                 placeholder="Max Price"
               />
             </div>
+          </div>
+        )}
+        {loading && <div className="alert alert-warning">Verifying payment...</div>}
+
+        {showSuccessModal && (
+          <div className={`alert ${paymentStatus.includes("Failed") ? "alert-danger" : "alert-success"}`} role="alert">
+            {paymentStatus}
           </div>
         )}
 

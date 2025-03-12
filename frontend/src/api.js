@@ -134,16 +134,28 @@ export async function createPaypalPayment(orderId) {
       throw error;
     }
   }
-  // api.js
+// Fetch Order History 
 export async function fetchOrders() {
   try {
     return request("/api/bookings/orders",{
       method:"GET",
 
     });  
-
-
   } catch (error) {
     console.error(error);
+  }
+}
+// Execute the payment after user approval
+export async function executePayment(orderId, paymentId, payerId) {
+  const numericOrderId = Number(orderId); 
+  try {
+    const response = await request(`api/payments/paypal/execute/?PayerID=${payerId}&order_id=${numericOrderId}&paymentId=${paymentId}`, {
+      method: "GET",
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Error executing PayPal payment:", error);
+    throw error;
   }
 }
