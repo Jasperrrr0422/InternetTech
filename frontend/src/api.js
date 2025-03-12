@@ -108,28 +108,12 @@ export async function postHotelInformation(formData) {
     }
   }
 export async function createPaypalPayment(orderId) {
-    try {
-      const response = await fetch("/api/payments/paypal/create/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          order_id: orderId,  
-        }),
-      });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create PayPal payment");
-      }
-  
-      return data;
-    } catch (error) {
-      console.error("Error creating PayPal payment:", error);
-      throw new Error("Payment creation failed");
-    }
+  return request("/api/payments/paypal/create/",{
+    method:"POST",
+    body: JSON.stringify({
+      order_id: orderId,  
+    }),
+  }); 
   }
   export async function createBooking(bookingData) {
     try {

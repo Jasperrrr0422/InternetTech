@@ -57,10 +57,9 @@ export default function HotelDetailPage() {
       console.log("Booking response:", response); // Add this for debugging
   
       const orderId = response.id;
+      const nights = Math.max(Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)), 0);
   
       if (orderId) {
-        const paymentResponse = await createPaypalPayment(orderId);
-        if (paymentResponse.status === 200) {
           navigate("/payment", {
             state: {
               totalPrice,
@@ -68,12 +67,15 @@ export default function HotelDetailPage() {
               checkOut,
               guests: bookingData.guests,
               hotelName: hotel?.name,
+              address: hotel?.address, 
+              city: hotel?.city,
+              country: hotel?.country,
+              pricePerNight:hotel?.price_per_night,
+              nights:nights,
               orderId: orderId,
             },
           });
-        } else {
-          throw new Error("Payment creation failed");
-        }
+        
       } else {
         throw new Error("Failed to create booking");
       }
