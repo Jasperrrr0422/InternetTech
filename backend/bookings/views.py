@@ -114,7 +114,6 @@ class OrderRatingView(APIView):
         
 
 
-@method_decorator(csrf_exempt, name='dispatch') 
 class OrderCompletedView(APIView):
     permission_classes = [IsAuthenticated, IsUserRole]
 
@@ -135,11 +134,15 @@ class OrderCompletedView(APIView):
                 owner.balance += owner_commission
                 owner.save()
                 commission.save()
+                hotel:Hotel = order.hotel
+                hotel.total_rooms += order.room_count
+                hotel.save()
                 return Response({"message": "Order completed successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-@method_decorator(csrf_exempt, name='dispatch')    
+
+
 class OrderCancelView(APIView):
     permission_classes = [IsAuthenticated, IsUserRole]
 
@@ -153,6 +156,9 @@ class OrderCancelView(APIView):
             with transaction.atomic():
                 order = get_object_or_404(Order, id=order_id, user=request.user)
                 order.status = 'canceled'
+                hotel:Hotel = order.hotel
+                hotel.total_rooms += order.room_count
+                hotel.save()
                 order.save()
                 return Response({"message": "Order cancelled successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
