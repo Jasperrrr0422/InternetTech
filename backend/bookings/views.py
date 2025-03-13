@@ -13,7 +13,9 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.db.models import Avg
 from django.db import transaction
 from .tasks import update_hotel_rating
-
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from decimal import Decimal
 # Create your views here.
 class OrderListView(APIView):
     permission_classes = [IsAuthenticated, IsUserRole]
@@ -78,11 +80,11 @@ class OrderRatingView(APIView):
     def post(self, request, order_id):
         try:
             with transaction.atomic():
-                # 获取订单并检查状态
+                
                 order = Order.objects.get(
                     id=order_id, 
-                    user=request.user,  # 确保是用户自己的订单
-                    status='completed'  # 只能评价已完成的订单
+                    user=request.user,  
+                    status='completed'  
                 )
                 
                 rating = request.data.get('rating')
@@ -112,8 +114,10 @@ class OrderRatingView(APIView):
         
 
 
+@method_decorator(csrf_exempt, name='dispatch') 
 class OrderCompletedView(APIView):
     permission_classes = [IsAuthenticated, IsUserRole]
+
     @extend_schema(
         summary="Complete an order",
         description="Complete an order",
@@ -122,22 +126,23 @@ class OrderCompletedView(APIView):
     def post(self, request, order_id):
         try:
             with transaction.atomic():  
-                order = get_object_or_404(Order, id=order_id, user=request.user,status='paid')
+                order = get_object_or_404(Order, id=order_id, user=request.user, status='paid')
                 order.status = 'completed'
                 order.save()
-                commission = Commission.objects.create(order=order,commission_rate=0.1)
-                owner_commission = order.total_price * 0.9
+                commission = Commission.objects.create(order=order, commission_rate=Decimal('0.1'))
+                owner_commission = order.total_price * Decimal('0.9')
                 owner = order.hotel.owner
                 owner.balance += owner_commission
                 owner.save()
                 commission.save()
-                return Response(status=status.HTTP_200_OK)
+                return Response({"message": "Order completed successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        
+@method_decorator(csrf_exempt, name='dispatch')    
 class OrderCancelView(APIView):
     permission_classes = [IsAuthenticated, IsUserRole]
+
     @extend_schema(
         summary="Cancel an order",
         description="Cancel an order",
@@ -146,9 +151,9 @@ class OrderCancelView(APIView):
     def post(self, request, order_id):
         try:
             with transaction.atomic():
-                order = get_object_or_404(Order, id=order_id, user=request.user, status='paid')
+                order = get_object_or_404(Order, id=order_id, user=request.user)
                 order.status = 'canceled'
                 order.save()
-                return Response(status=status.HTTP_200_OK)
+                return Response({"message": "Order cancelled successfully"}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

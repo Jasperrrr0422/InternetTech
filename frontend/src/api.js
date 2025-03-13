@@ -127,7 +127,6 @@ export async function createPaypalPayment(orderId) {
         }),
       });
   
-      // 返回响应数据
       return response;
     } catch (error) {
       console.error("Booking failed:", error);
@@ -145,6 +144,27 @@ export async function fetchOrders() {
     console.error(error);
   }
 }
+// Cancel order
+export async function cancelOrder(orderId) {
+  const numericOrderId = Number(orderId);
+  return request(`api/bookings/orders/cancel/${numericOrderId}/`, {
+    method: "POST",
+  });
+}
+// Complete order
+export async function completeOrder(orderId) {
+  const numericOrderId = Number(orderId);
+  return request(`api/bookings/orders/completed/${numericOrderId}/`, {
+    method: "POST",
+  });
+}
+export async function rateOrder(orderId, rating) {
+  return request(`/api/bookings/orders/rating/${orderId}/`, {
+    method: "POST",
+    body: JSON.stringify({ rating }),
+  });
+}
+
 // Execute the payment after user approval
 export async function executePayment(orderId, paymentId, payerId) {
   const numericOrderId = Number(orderId); 

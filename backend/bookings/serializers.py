@@ -35,13 +35,14 @@ class OrderRatingSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         order = get_object_or_404(Order, id=validated_data.get('id'))
         order.rating = validated_data.get('rating')
+        order.status = 'completed'
         order.save()
         return order
 
 
     class Meta:
         model = Order
-        fields = ['id']
+        fields = ['id','rating']
 
     def create(self, validated_data):
         order = get_object_or_404(Order, id=validated_data.get('id'))

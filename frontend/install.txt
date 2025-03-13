@@ -1,3 +1,4 @@
 react-dom
 react-router-dom
 bootstrap
+react-icons
