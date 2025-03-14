@@ -291,12 +291,13 @@ class HotelListAPIView(APIView):
             user = request.user
             if user.role == 'owner':
                 serializer = HotelSerializer(data=request.data, context={'request': request}) 
-                if serializer.is_valid():  
-                    hotel = serializer.save(owner=request.user) 
-                return Response(HotelSerializer(hotel, context={'request': request}).data, status=status.HTTP_201_CREATED)  
-
-            return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)  
-        except Exception as e:  
+                if serializer.is_valid():
+                    hotel = serializer.save(owner=request.user)
+                    return Response(HotelSerializer(hotel, context={'request': request}).data, 
+                                    status=status.HTTP_201_CREATED)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)  
 
 

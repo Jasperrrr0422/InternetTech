@@ -6,9 +6,9 @@ export default function HotelOwnerPage() {
     const { id } = useParams(); // Get hotel ID from URL
     const navigate = useNavigate(); // Navigation function
     const [hotel, setHotel] = useState(null);
-    const [newAmenity, setNewAmenity] = useState({ name: "", description: "" });
+    const [newAmentity, setNewAmentity] = useState({ name: "", description: "" });
     const [commentReply, setCommentReply] = useState("");
-    const [amenities, setAmenities] = useState([]); // List of amenities
+    const [amentities, setAmentities] = useState([]); // List of amenities
 
 
     // Fetch hotel details
@@ -73,7 +73,7 @@ export default function HotelOwnerPage() {
                     </p>
                     <p>
                         <strong>Amenities:</strong>{" "}
-                        {hotel.amentities?.map((amenity, index) => (
+                        {hotel.amentities_detail?.map((amenity, index) => (
                             <span key={index} className="badge bg-secondary me-1">{amenity.name}</span>
                         ))}
                     </p>

@@ -13,8 +13,8 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.db.models import Avg
 from django.db import transaction
 from .tasks import update_hotel_rating
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+
+
 from decimal import Decimal
 # Create your views here.
 class OrderListView(APIView):

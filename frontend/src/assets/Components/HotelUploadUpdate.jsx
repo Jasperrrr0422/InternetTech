@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { getAmenities, postHotelInformation, createAmenity,updateHotelInformation } from "../../api";
-import { useParams } from "react-router-dom";
+import { getAmenities, postHotelInformation, createAmenity,updateHotelInformation, getHotelDetail } from "../../api";
+import { useParams, useNavigate } from "react-router-dom";
 export default function HotelUploadUpdate({isEditMode = false}) {
   const { id: hotelId } = useParams();
+  const navigate = useNavigate();
   // List of amenities
   const [amenitiesList, setAmenitiesList] = useState([]);
   // State to store form data
@@ -16,10 +17,12 @@ export default function HotelUploadUpdate({isEditMode = false}) {
     amenities: [], // Store selected amenities' IDs
     description: "",
     image: null,
+    image_url: "",  // 添加这个字段存储图片URL
   });
   const [newAmenity, setNewAmenity] = useState({ name: "", description: "" });
   const [amentities, setAmentities] = useState([]); // List of amenities
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);  // 添加加载状态
 
   // **Fetch amenities list**
   useEffect(() => {
@@ -33,6 +36,38 @@ export default function HotelUploadUpdate({isEditMode = false}) {
     }
     fetchAmenities();
   }, [hotelId, isEditMode]);
+
+  // 加载酒店原有信息
+  useEffect(() => {
+    if (isEditMode && hotelId) {
+      async function fetchHotelData() {
+        try {
+          const hotelData = await getHotelDetail(hotelId);
+          setFormData({
+            name: hotelData.name,
+            address: hotelData.address,
+            price_per_night: hotelData.price_per_night,
+            total_rooms: hotelData.total_rooms,
+            total_beds: hotelData.total_beds,
+            total_bathrooms: hotelData.total_bathrooms,
+            description: hotelData.description,
+            image: null,
+            image_url: hotelData.image_url  // 设置图片URL
+          });
+          
+          // 设置已选择的设施
+          const existingAmenities = hotelData.amentities_detail.map(a => a.name);
+          setAmentities(existingAmenities);
+        } catch (error) {
+          console.error("Error fetching hotel data:", error);
+          alert("Failed to load hotel information");
+        } finally {
+          setLoading(false);
+        }
+      }
+      fetchHotelData();
+    }
+  }, [isEditMode, hotelId]);
 
   // **Handle input change**
   const handleInputChange = (e) => {
@@ -94,7 +129,9 @@ export default function HotelUploadUpdate({isEditMode = false}) {
         submitData.append("description", formData.description);
 
         // ✅ 传 amentities
-        amentities.forEach(amentity => submitData.append("amentities[]", amentity));
+        // amentities.forEach(amentity => submitData.append("amentities[]", amentity));
+        submitData.append("amentities", amentities.join(','));
+
 
         if (formData.image) {
             submitData.append("image", formData.image);
@@ -103,9 +140,11 @@ export default function HotelUploadUpdate({isEditMode = false}) {
         if (isEditMode) {
             await updateHotelInformation(hotelId, submitData);
             alert("Hotel updated successfully!");
+            navigate(0);
         } else {
             await postHotelInformation(submitData);
             alert("Hotel created successfully!");
+            navigate('/hotels');
         }
     } catch (error) {
         console.error("Error submitting form:", error);
@@ -114,6 +153,12 @@ export default function HotelUploadUpdate({isEditMode = false}) {
 
     setUploading(false);
 };
+
+  // 在返回的 JSX 中添加加载状态判断
+  if (isEditMode && loading) {
+    return <div>Loading hotel information...</div>;
+  }
+
   return (
     <div className="container mt-4">
       <h2>{isEditMode ? "Edit Hotel" : "Upload a New Property"}</h2>
@@ -193,8 +238,28 @@ export default function HotelUploadUpdate({isEditMode = false}) {
 
         {/* Image upload */}
         <div className="mb-3">
-          <label className="form-label">Upload image</label>
-          <input type="file" name="image" onChange={handleInputChange} className="form-control" accept="image/*" />
+          <label className="form-label">Image</label>
+          {formData.image_url && (
+            <div className="mb-2">
+              <img 
+                src={formData.image_url} 
+                alt="Current hotel image" 
+                style={{ maxWidth: '200px' }} 
+                className="mb-2"
+              />
+              <p>Current image</p>
+            </div>
+          )}
+          <input 
+            type="file" 
+            name="image" 
+            onChange={handleInputChange} 
+            className="form-control" 
+            accept="image/*" 
+          />
+          <small className="text-muted">
+            {formData.image_url ? "Upload a new image to replace the current one" : "Upload an image"}
+          </small>
         </div>
 
         {/* Submit button */}

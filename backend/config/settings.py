@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     'bookings',
     'payments',
     'properties',
-    'reviews', 
+    'reviews',
+    'customadmin',
 ]
 
 REST_FRAMEWORK = {

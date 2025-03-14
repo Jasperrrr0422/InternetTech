@@ -40,6 +40,11 @@ export default function HotelDetailPage() {
     calculateTotalPrice();
   }, [calculateTotalPrice]);
 
+  const calculateNights = (checkIn, checkOut) => {
+    if (!checkIn || !checkOut) return 0;
+    return Math.max(Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)), 0);
+  };
+
   // Handle booking request
   const handleReserve = async () => {
     setLoading(true);
@@ -117,11 +122,17 @@ export default function HotelDetailPage() {
         <div className="col-md-4">
           <h2>{hotel.name}</h2>
           <p>
-            {hotel.address}, {hotel.city}, {hotel.country}
+            {hotel.address}
+          </p>
+          <p>
+          {hotel.city}
+          </p>
+          <p>
+          {hotel.country}
           </p>
           <p>
             <strong>Amenities:</strong>{" "}
-            {hotel.amentities?.map((amenity, index) => (
+            {hotel.amentities_detail?.map((amenity, index) => (
               <span key={index} className="badge bg-secondary me-1">{amenity.name}</span>
             ))}
           </p>
@@ -132,7 +143,17 @@ export default function HotelDetailPage() {
           <p>Host by <strong>{hotel.owner_name}</strong></p>
 
           <div className="border p-3 rounded bg-light">
-            <h4>${hotel.price_per_night} / night</h4>
+            {hotel.price_per_night && (
+              <div>
+                <span>£{hotel.price_per_night} per night</span>
+                {checkIn && checkOut && (
+                  <div>
+                    {calculateNights(checkIn, checkOut)} nights total: 
+                    £{hotel.price_per_night * calculateNights(checkIn, checkOut)}
+                  </div>
+                )}
+              </div>
+            )}
             <div className="d-flex">
               <input type="date" className="form-control me-2" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
               <input type="date" className="form-control" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
@@ -148,7 +169,12 @@ export default function HotelDetailPage() {
             </button>
 
             <p className="mt-2 text-center">
-              ${hotel.price_per_night} x {Math.max(Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)), 0)} nights
+              {hotel.price_per_night && (
+                <div>
+                  {calculateNights(checkIn, checkOut)} nights total: 
+                  £{hotel.price_per_night * calculateNights(checkIn, checkOut)}
+                </div>
+              )}
             </p>
             <h5 className="text-end">Total: ${totalPrice}</h5>
           </div>

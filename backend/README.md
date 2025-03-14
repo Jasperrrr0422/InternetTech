@@ -9,3 +9,7 @@ celery task command:celery -A config worker --loglevel=info
 redis server start: brew services start redis
 
 redis server stop: brew services stop redis
+
+admin-account:
+    username:rodriguezhannah
+    password:123456

@@ -60,7 +60,7 @@ export default function HostPage() {
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2>Host Page</h2>
-        <span>Welcome Owner: , {ownerName}</span> {/* Display owner name */}
+        <h3>Welcome Owner:{ownerName}</h3> {/* Display owner name */}
         <input type="text" className="form-control w-25" placeholder="Search..." />
         {/* Logout Button */}
         <button className="btn btn-danger" href="#" onClick={handleLogout}>

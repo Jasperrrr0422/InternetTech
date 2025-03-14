@@ -12,58 +12,62 @@ class AmentitySerializer(serializers.ModelSerializer):
 class HotelSerializer(serializers.ModelSerializer):  
     image_url = serializers.SerializerMethodField()  
     owner = serializers.PrimaryKeyRelatedField(read_only=True)   
-    amentities = AmentitySerializer(many=True, required=False)
+    amentities = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        write_only=True
+    )
+    amentities_detail = AmentitySerializer(
+        source='amentities',
+        many=True,
+        read_only=True
+    )
     owner_name = serializers.SerializerMethodField()
     class Meta:  
         model = Hotel  
         fields = [  
             'id', 'name', 'description', 'address',  
             'image_url', 'price_per_night', 'total_rooms',  
-            'total_beds', 'owner','owner_name', 'amentities', 'image', 'rating'
+            'total_beds', 'owner', 'owner_name', 
+            'amentities', 'amentities_detail',
+            'image', 'rating'
         ]  
         read_only_fields = ['image_url', 'owner']  
 
     def to_internal_value(self, data):
-        """
-        重写to_internal_value方法来处理amenities的写入
-        """
-        amenities_data = data.get('amentities')
-        if amenities_data and isinstance(amenities_data, str):
-            # 如果是字符串，按逗号分割
-            amenities_names = amenities_data.split(',')
-            # 转换为序列化器期望的格式
-            data = data.copy()
-            data['amentities'] = [{'name': name.strip()} for name in amenities_names]
+        data = data.copy()
+        
+        # 处理 amentities 字段
+        if 'amentities' in data:
+            # 获取字符串并分割
+            amentities_string = data.get('amentities')
+            # 转换为列表
+            data.setlist('amentities', amentities_string.split(','))
         
         return super().to_internal_value(data)
 
     def get_owner_name(self, obj):
         return obj.owner.username
     
-    def validate_amenities(self, value):
+    def validate_amentities(self, value):
         if not value:
             return []
 
-        amenities_objects = []
-        for item in value:
-            if isinstance(item, dict):
-                amenity_name = item.get('name')
-            else:
-                amenity_name = item  # 直接使用字符串
-
-            amenity = Amentity.objects.filter(name=amenity_name).first()
+        amentities_objects = []
+        for name in value:
+            amenity = Amentity.objects.filter(name=name.strip()).first()
             if amenity:
-                amenities_objects.append(amenity)
+                amentities_objects.append(amenity)
             else:
                 raise serializers.ValidationError(
-                    f"Amenity `{amenity_name}` does not exist."
+                    f"Amenity `{name.strip()}` does not exist."
                 )
-        return amenities_objects
+        return amentities_objects
     
     def validate_image(self, value):  
         """  
         校验上传图片的格式和大小。  
-        """  
+        """ 
         if value:  
             if not value.content_type.startswith('image/'):  
                 raise serializers.ValidationError("File type not supported.")  
@@ -80,10 +84,11 @@ class HotelSerializer(serializers.ModelSerializer):
         return None  
 
     def create(self, validated_data):
-        amenities = validated_data.pop('amentities', [])
+        print("create 方法收到的数据:", validated_data)  # 添加调试信息
+        amentities = validated_data.pop('amentities', [])
         hotel = Hotel.objects.create(**validated_data)
-        if amenities:
-            hotel.amentities.set(amenities)
+        if amentities:
+            hotel.amentities.set(amentities)
         return hotel
 
     def update(self, instance, validated_data):
