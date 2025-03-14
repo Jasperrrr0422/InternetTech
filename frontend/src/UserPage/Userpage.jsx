@@ -1,6 +1,6 @@
 import Navbar from "../assets/Components/Navbar";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 import { getHotelList } from "../api";
 import HotelList from "../assets/Components/HotelList/HotelList";
 import Pagination from "../assets/Components/Pagination";
@@ -9,7 +9,9 @@ import { executePayment } from "../api";
 export default function UserPage() {
   // State variables for user data, hotels, pagination, and filters
   const [username, setUsername] = useState("");
+  const navigate = useNavigate();
   const [hotels, setHotels] = useState([]);
+  const [role, setRole] = useState(""); // Store user role
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showFilter, setShowFilter] = useState(false); // Toggle filter dropdown
@@ -32,7 +34,12 @@ export default function UserPage() {
   // Get username from localStorage
   useEffect(() => {
     const storedUsername = localStorage.getItem("username") || "";
+    const storedRole = localStorage.getItem("role") || "";
     setUsername(storedUsername);
+    setRole(storedRole);
+    if (storedRole === "owner") {
+      navigate("/owenermainpage");
+    }
   }, []);
 
   // Fetch hotels when the page changes
@@ -228,7 +235,7 @@ export default function UserPage() {
         )}
 
         {/* Hotel Listings */}
-         <HotelList hotels={hotels} />
+        <HotelList hotels={hotels} isOwner={false} />
         {/* Pagination Controls */}
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>

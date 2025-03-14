@@ -76,10 +76,17 @@ export async function getHotelDetail(id) {
       method: "GET",
     });
   }
-
+// Get amenities 
 export async function getAmenities() {
     return request("/api/properties/amentities/", {
       method: "GET",
+    });
+  }
+// Create new Amenity 
+export async function createAmenity(name, description) {
+    return request("/api/properties/amentities/", {
+      method: "POST",
+      body: JSON.stringify({ name, description }),
     });
   }
 export async function postHotelInformation(formData) {

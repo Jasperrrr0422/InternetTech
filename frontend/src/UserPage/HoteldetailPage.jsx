@@ -1,19 +1,19 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
-import { getHotelDetail, createBooking,createPaypalPayment } from "../api";
+import { getHotelDetail, createBooking } from "../api";
 
 export default function HotelDetailPage() {
-  const { id } = useParams(); // 获取URL中的酒店ID
-  const navigate = useNavigate(); // 页面跳转
+  const { id } = useParams(); // Get hotel ID from URL
+  const navigate = useNavigate(); // Navigation function
   const [hotel, setHotel] = useState(null);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [loading, setLoading] = useState(false); // 预订状态
-  const [error, setError] = useState(null); // 预订错误信息
+  const [loading, setLoading] = useState(false); // Booking status
+  const [error, setError] = useState(null); // Booking error message
 
-  // 获取酒店详情
+  // Fetch hotel details
   const fetchHotelDetails = useCallback(async () => {
     try {
       const data = await getHotelDetail(id);
@@ -27,7 +27,7 @@ export default function HotelDetailPage() {
     fetchHotelDetails();
   }, [fetchHotelDetails]);
 
-  // 计算总价
+  // Calculate total price based on number of nights
   const calculateTotalPrice = useCallback(() => {
     if (!checkIn || !checkOut) return;
     const checkInDate = new Date(checkIn);
@@ -40,11 +40,11 @@ export default function HotelDetailPage() {
     calculateTotalPrice();
   }, [calculateTotalPrice]);
 
-  // 处理预订请求
+  // Handle booking request
   const handleReserve = async () => {
     setLoading(true);
     setError(null);
-  
+
     try {
       const bookingData = {
         hotel: parseInt(id, 10),
@@ -52,48 +52,58 @@ export default function HotelDetailPage() {
         check_out_date: checkOut,
         guests: parseInt(guests, 10) || 1,
       };
+
       console.log(bookingData);
       const response = await createBooking(bookingData);
-      console.log("Booking response:", response); // Add this for debugging
-  
+      console.log("Booking response:", response); // Debugging output
+
       const orderId = response.id;
       const nights = Math.max(Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)), 0);
-  
+
       if (orderId) {
-          navigate("/payment", {
-            state: {
-              totalPrice,
-              checkIn,
-              checkOut,
-              guests: bookingData.guests,
-              hotelName: hotel?.name,
-              address: hotel?.address, 
-              city: hotel?.city,
-              country: hotel?.country,
-              pricePerNight:hotel?.price_per_night,
-              nights:nights,
-              orderId: orderId,
-            },
-          });
-        
+        navigate("/payment", {
+          state: {
+            totalPrice,
+            checkIn,
+            checkOut,
+            guests: bookingData.guests,
+            hotelName: hotel?.name,
+            address: hotel?.address,
+            city: hotel?.city,
+            country: hotel?.country,
+            pricePerNight: hotel?.price_per_night,
+            nights: nights,
+            orderId: orderId,
+          },
+        });
       } else {
         throw new Error("Failed to create booking");
       }
     } catch (err) {
-      console.error("Booking failed:", err); // Add this for debugging
+      console.error("Booking failed:", err);
       setError("Failed to create booking. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  // Show loading text if hotel details are not yet loaded
   if (!hotel) {
     return <p>Loading...</p>;
   }
 
   return (
     <div className="container mt-4">
+      {/* Header Section with "Return to Home" Button */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>Hotel Details</h2>
+        <button className="btn btn-outline-danger" onClick={() => navigate("/")}>
+          Return to Home
+        </button>
+      </div>
+
       <div className="row">
-        {/* 左侧：酒店图片 */}
+        {/* Left Section: Hotel Images */}
         <div className="col-md-8">
           <img src={hotel.image} className="imageDetail" alt={hotel.name} />
           <div className="d-flex gap-2">
@@ -103,17 +113,23 @@ export default function HotelDetailPage() {
           </div>
         </div>
 
-        {/* 右侧：酒店信息 + 预订表单 */}
+        {/* Right Section: Hotel Info + Booking Form */}
         <div className="col-md-4">
           <h2>{hotel.name}</h2>
           <p>
             {hotel.address}, {hotel.city}, {hotel.country}
           </p>
           <p>
-            {hotel.guests} Guests • {hotel.beds} Beds • {hotel.bathrooms} Bathrooms
+            <strong>Amenities:</strong>{" "}
+            {hotel.amentities?.map((amenity, index) => (
+              <span key={index} className="badge bg-secondary me-1">{amenity.name}</span>
+            ))}
+          </p>
+          <p>
+            {hotel.guests} Guests • {hotel.total_rooms} Rooms • {hotel.total_beds} Beds
           </p>
           <p className="fw-bold">⭐ {hotel.rating} / 5</p>
-          <p>Host by <strong>{hotel.owner}</strong></p>
+          <p>Host by <strong>{hotel.owner_name}</strong></p>
 
           <div className="border p-3 rounded bg-light">
             <h4>${hotel.price_per_night} / night</h4>
@@ -123,10 +139,10 @@ export default function HotelDetailPage() {
             </div>
             <input type="number" className="form-control mt-2" value={guests} min="1" onChange={(e) => setGuests(e.target.value)} placeholder="Choose Guest" />
 
-            {/* 显示错误信息 */}
+            {/* Show error message if any */}
             {error && <p className="text-danger mt-2">{error}</p>}
 
-            {/* 预订按钮 */}
+            {/* Booking Button */}
             <button className="btn btn-primary w-100 mt-3" onClick={handleReserve} disabled={loading}>
               {loading ? "Processing..." : "Reserve"}
             </button>
@@ -139,7 +155,7 @@ export default function HotelDetailPage() {
         </div>
       </div>
 
-      {/* 评论区 */}
+      {/* Comment Section */}
       <div className="mt-4">
         <h3>Comments</h3>
         <div className="mb-3">

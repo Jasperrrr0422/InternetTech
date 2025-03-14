@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAmenities, postHotelInformation } from "../api";
+import { getAmenities, postHotelInformation, createAmenity } from "../api";
 
 export default function PostHotelInfo() {
   // List of amenities
@@ -16,7 +16,8 @@ export default function PostHotelInfo() {
     description: "",
     image: null,
   });
-
+  const [newAmenity, setNewAmenity] = useState({ name: "", description: "" });
+  const [amenities, setAmenities] = useState([]); // List of amenities
   const [uploading, setUploading] = useState(false);
 
   // **Fetch amenities list**
@@ -50,7 +51,26 @@ export default function PostHotelInfo() {
       return { ...prev, amenities: updatedAmenities };
     });
   };
-
+  const handleCreateAmenity = async () => {
+    if (!newAmenity.name || !newAmenity.description) {
+      alert("Please fill in all fields.");
+      return;
+    }
+  
+    try {
+      const response = await createAmenity(newAmenity.name, newAmenity.description);
+      
+      alert(`Amenity "${newAmenity.name}" created successfully!`);
+      
+      // Update the amenities list immediately
+      setAmenitiesList((prevAmenities) => [...prevAmenities, response]);
+  
+      setNewAmenity({ name: "", description: "" }); // Reset form
+    } catch (error) {
+      console.error("Failed to create amenity:", error);
+      alert("Failed to create amenity. Please try again.");
+    }
+  };
   // **Submit form**
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,19 +115,19 @@ export default function PostHotelInfo() {
       <form onSubmit={handleSubmit}>
         {/* Hotel name input */}
         <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="form-control mb-2" placeholder="The name of hotel" required />
-        
+
         {/* Address input */}
         <input type="text" name="address" value={formData.address} onChange={handleInputChange} className="form-control mb-2" placeholder="Address" required />
-        
+
         {/* Price per night input */}
         <input type="number" name="price_per_night" value={formData.price_per_night} onChange={handleInputChange} className="form-control mb-2" placeholder="Price per night" required />
-        
+
         {/* Total rooms input */}
         <input type="number" name="total_rooms" value={formData.total_rooms} onChange={handleInputChange} className="form-control mb-2" placeholder="Number of rooms" required />
-        
+
         {/* Total beds input */}
         <input type="number" name="total_beds" value={formData.total_beds} onChange={handleInputChange} className="form-control mb-2" placeholder="Number of beds" required />
-        
+
         {/* Total bathrooms input */}
         <input type="number" name="total_bathrooms" value={formData.total_bathrooms} onChange={handleInputChange} className="form-control mb-2" placeholder="Number of bathrooms" required />
 
@@ -118,11 +138,11 @@ export default function PostHotelInfo() {
             amenitiesList.map((amenity) => (
               <div key={amenity.id} className="form-check">
                 <input
-                    type="checkbox"
-                    id={`amenity-${amenity.id}`}
-                    className="form-check-input"
-                    checked={formData.amenities.includes(amenity.name)}
-                    onChange={() => handleCheckboxChange(amenity.name)}
+                  type="checkbox"
+                  id={`amenity-${amenity.id}`}
+                  className="form-check-input"
+                  checked={formData.amenities.includes(amenity.name)}
+                  onChange={() => handleCheckboxChange(amenity.name)}
                 />
                 <label htmlFor={`amenity-${amenity.id}`} className="form-check-label">
                   {amenity.name}
@@ -136,13 +156,35 @@ export default function PostHotelInfo() {
 
         {/* Description textarea */}
         <textarea
-        name="description"
-        value={formData.description}
-        onChange={handleInputChange}
-        className="form-control mb-2"
-        placeholder="Description"
-        required
+          name="description"
+          value={formData.description}
+          onChange={handleInputChange}
+          className="form-control mb-2"
+          placeholder="Description"
+          required
         ></textarea>
+        {/* Create New Amenity Section */}
+        <div className="mb-3">
+          <h4>Create a New Amenity</h4>
+          <input
+            type="text"
+            className="form-control mb-2"
+            placeholder="Amenity Name"
+            value={newAmenity.name}
+            onChange={(e) => setNewAmenity({ ...newAmenity, name: e.target.value })}
+          />
+          <input
+            type="text"
+            className="form-control mb-2"
+            placeholder="Amenity Description"
+            value={newAmenity.description}
+            onChange={(e) => setNewAmenity({ ...newAmenity, description: e.target.value })}
+          />
+          <button className="btn btn-primary" onClick={handleCreateAmenity}>
+            Submit
+          </button>
+        </div>
+
 
         {/* Image upload */}
         <div className="mb-3">

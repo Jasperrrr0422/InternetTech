@@ -92,7 +92,7 @@ export default function HostPage() {
       </div>
 
       {/* Content Area */}
-      <HotelList hotels={hotels} />
+      <HotelList hotels={hotels} isOwner={true}/>
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );

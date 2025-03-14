@@ -257,3 +257,132 @@ code {
   height: 650px;
   width: 100%;
 }
+/* Card-style order container */
+.order-card {
+  margin-bottom: 20px; /* Space between each order */
+  border-radius: 10px;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.order-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Order details section */
+.order-info h3 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+
+.order-info p {
+  margin-bottom: 5px;
+}
+
+/* Order actions */
+.order-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between buttons */
+}
+
+/* Status badge */
+.order-status {
+  font-size: 0.9rem;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+/* General Container */
+.hotel-upload-container {
+  max-width: 800px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
+}
+
+.hotel-upload-container:hover {
+  transform: translateY(-5px);
+}
+
+
+
+/* Form Styling */
+.hotel-upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Input Fields */
+.hotel-upload-form input,
+.hotel-upload-form textarea,
+.hotel-upload-form select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s ease-in-out;
+}
+
+.hotel-upload-form input:focus,
+.hotel-upload-form textarea:focus,
+.hotel-upload-form select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Amenities Section */
+.amenities-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.amenities-container label {
+  background: #f0f0f0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.amenities-container input:checked + label {
+  background: #007bff;
+  color: white;
+}
+
+/* Upload Button */
+.upload-btn {
+  background: #007bff;
+  color: white;
+  padding: 12px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.upload-btn:hover {
+  background: #0056b3;
+}
+
+/* File Upload */
+.file-upload {
+  padding: 10px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.3s ease-in-out;
+}
+
+.file-upload:hover {
+  border-color: #007bff;
+}
+
