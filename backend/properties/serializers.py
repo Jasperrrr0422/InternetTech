@@ -40,16 +40,17 @@ class HotelSerializer(serializers.ModelSerializer):
     def get_owner_name(self, obj):
         return obj.owner.username
     
-    def validate_amentities(self, value):
-        """
-        验证amenities并转换为对象列表
-        """
+    def validate_amenities(self, value):
         if not value:
             return []
 
         amenities_objects = []
         for item in value:
-            amenity_name = item.get('name')
+            if isinstance(item, dict):
+                amenity_name = item.get('name')
+            else:
+                amenity_name = item  # 直接使用字符串
+
             amenity = Amentity.objects.filter(name=amenity_name).first()
             if amenity:
                 amenities_objects.append(amenity)
@@ -86,15 +87,15 @@ class HotelSerializer(serializers.ModelSerializer):
         return hotel
 
     def update(self, instance, validated_data):
-        amenities = validated_data.pop('amentities', None)
+        amentities = validated_data.pop('amentities', None)
         # 更新其他字段
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
         
         # 如果提供了amenities，更新关系
-        if amenities is not None:
-            instance.amentities.set(amenities)
+        if amentities is not None:
+            instance.amentities.set(amentities)
         
         return instance
 

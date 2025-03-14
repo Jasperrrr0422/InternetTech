@@ -114,6 +114,32 @@ export async function postHotelInformation(formData) {
       throw error;
     }
   }
+  export async function updateHotelInformation(hotelId,formData) {
+    const token = localStorage.getItem("access_token");
+  
+    const headers = {
+      "Authorization": `Bearer ${token}`,
+    };
+  
+    try {
+      const response = await fetch(`${BASE_URL}api/properties/hotels/detail/${hotelId}/`, {
+        method: "PUT",
+        body: formData,
+        headers,
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Request failed");
+      }
+  
+      return response.json();
+    } catch (error) {
+      console.error("Upload error:", error);
+      throw error;
+    }
+  }
+
 export async function createPaypalPayment(orderId) {
   return request("/api/payments/paypal/create/",{
     method:"POST",

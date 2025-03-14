@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { getHotelDetail, createAmenity, replyToComment } from "../api"; // Import API functions
-
+import HotelUploadUpdate from "../assets/Components/HotelUploadUpdate";
 export default function HotelOwnerPage() {
     const { id } = useParams(); // Get hotel ID from URL
     const navigate = useNavigate(); // Navigation function
@@ -78,6 +78,7 @@ export default function HotelOwnerPage() {
                         ))}
                     </p>
 
+
                     {/* Star Rating Section */}
                     <div className="d-flex align-items-center mb-3">
                         {[1, 2, 3, 4, 5].map((star) => (
@@ -86,10 +87,11 @@ export default function HotelOwnerPage() {
                             </span>
                         ))}
                     </div>
+                    <HotelUploadUpdate isEditMode={true} />
                 </div>
-
+                
             </div>
-
+                       
 
 
             {/* Comments Section */}
