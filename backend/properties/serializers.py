@@ -103,7 +103,3 @@ class HotelSerializer(serializers.ModelSerializer):
             instance.amentities.set(amentities)
         
         return instance
-
-
-
-
