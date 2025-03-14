@@ -69,7 +69,7 @@ export default function HotelOwnerPage() {
                     </p>
                     <p>
                         <strong>{hotel.guests}</strong> Guests • <strong>{hotel.total_beds}</strong> Beds •{" "}
-                        <strong>{hotel.total_bathrooms}</strong> Bathrooms
+                        <strong>{hotel.total_rooms}</strong> rooms
                     </p>
                     <p>
                         <strong>Amenities:</strong>{" "}
