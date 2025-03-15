@@ -144,7 +144,7 @@ export default function HotelUploadUpdate({isEditMode = false}) {
         } else {
             await postHotelInformation(submitData);
             alert("Hotel created successfully!");
-            navigate('/hotels');
+            navigate('/userpage');
         }
     } catch (error) {
         console.error("Error submitting form:", error);
