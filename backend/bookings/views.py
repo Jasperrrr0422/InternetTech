@@ -26,7 +26,10 @@ class OrderListView(APIView):
         tags=['Orders']
     )
     def get(self, request):
-        orders = Order.objects.filter(user=request.user)
+        if request.user.role == "owner":
+            orders = Order.objects.filter(hotel__owner=request.user)
+        else:
+            orders = Order.objects.filter(user=request.user)
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
     
