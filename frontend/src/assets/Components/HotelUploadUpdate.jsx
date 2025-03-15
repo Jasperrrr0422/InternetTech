@@ -17,7 +17,7 @@ export default function HotelUploadUpdate({isEditMode = false}) {
     amenities: [], // Store selected amenities' IDs
     description: "",
     image: null,
-    image_url: "",  // 添加这个字段存储图片URL
+    image_url: "",  
   });
   const [newAmenity, setNewAmenity] = useState({ name: "", description: "" });
   const [amentities, setAmentities] = useState([]); // List of amenities
@@ -115,43 +115,42 @@ export default function HotelUploadUpdate({isEditMode = false}) {
   };
   // **Submit form**
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setUploading(true);
+  e.preventDefault();
+  setUploading(true);
 
-    try {
-        const submitData = new FormData();
-        submitData.append("name", formData.name);
-        submitData.append("address", formData.address);
-        submitData.append("price_per_night", parseFloat(formData.price_per_night));
-        submitData.append("total_rooms", parseInt(formData.total_rooms, 10));
-        submitData.append("total_beds", parseInt(formData.total_beds, 10));
-        submitData.append("total_bathrooms", parseInt(formData.total_bathrooms, 10));
-        submitData.append("description", formData.description);
+  try {
+    const submitData = new FormData();
+    submitData.append("name", formData.name);
+    submitData.append("address", formData.address);
+    submitData.append("price_per_night", parseFloat(formData.price_per_night));
+    submitData.append("total_rooms", parseInt(formData.total_rooms, 10));
+    submitData.append("total_beds", parseInt(formData.total_beds, 10));
+    submitData.append("total_bathrooms", parseInt(formData.total_bathrooms, 10));
+    submitData.append("description", formData.description);
 
-        // ✅ 传 amentities
-        // amentities.forEach(amentity => submitData.append("amentities[]", amentity));
-        submitData.append("amentities", amentities.join(','));
+    // Ensure amenities are being appended correctly
+    submitData.append("amentities", amentities.join(','));
 
-
-        if (formData.image) {
-            submitData.append("image", formData.image);
-        }
-
-        if (isEditMode) {
-            await updateHotelInformation(hotelId, submitData);
-            alert("Hotel updated successfully!");
-            navigate(0);
-        } else {
-            await postHotelInformation(submitData);
-            alert("Hotel created successfully!");
-            navigate('/userpage');
-        }
-    } catch (error) {
-        console.error("Error submitting form:", error);
-        alert("Operation failed. Please try again.");
+    if (formData.image) {
+      submitData.append("image", formData.image);
     }
 
-    setUploading(false);
+    // Make sure the backend expects this structure
+    if (isEditMode) {
+      await updateHotelInformation(hotelId, submitData);
+      alert("Hotel updated successfully!");
+      navigate(0);
+    } else {
+      await postHotelInformation(submitData);
+      alert("Hotel created successfully!");
+      navigate('/owenermainpage');
+    }
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert("Operation failed. Please try again.");
+  }
+
+  setUploading(false);
 };
 
   // 在返回的 JSX 中添加加载状态判断
