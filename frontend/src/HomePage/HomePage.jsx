@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../assets/Components/Navbar";
 import { getHotelList } from "../api"; // 复用 API
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [hotels, setHotels] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [userRole, setUserRole] = useState(null);
   const [filters, setFilters] = useState({
     q: "",
     min_price: "",
@@ -16,6 +18,28 @@ export default function HomePage() {
     check_out: "",
     guests: "",
   });
+
+  // 添加角色检查
+  useEffect(() => {
+    const role = localStorage.getItem('role');
+    const token = localStorage.getItem('access_token');
+    
+    // 如果已登录，根据角色重定向到对应页面
+    if (token && role) {
+      setUserRole(role);
+      switch (role) {
+        case 'admin':
+          navigate('/admin');
+          return;
+        case 'owner':
+          navigate('/owner');
+          return;
+        default:
+          // 普通用户可以继续浏览首页
+          break;
+      }
+    }
+  }, [navigate]);
 
   useEffect(() => {
     fetchHotels();
@@ -44,7 +68,8 @@ export default function HomePage() {
 
   return (
     <div className="homepage-container">
-      <Navbar user={null}/>
+      {/* 传递用户角色给 Navbar */}
+      <Navbar user={{ role: userRole }} />
 
       <div className="container mt-4">
         <h2>Find Your Perfect Stay</h2>

@@ -11,5 +11,5 @@ redis server start: brew services start redis
 redis server stop: brew services stop redis
 
 admin-account:
-    username:alyssa92
+    username:dprice
     password:123456

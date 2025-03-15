@@ -644,6 +644,66 @@ export default function AdminPage() {
     }
   };
 
+  // Daily Commission Trends 图表配置
+  const dailyCommissionOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    plugins: {
+      title: {
+        display: true,
+        text: 'Daily Commission Trends'
+      },
+      legend: {
+        position: 'top',
+      }
+    },
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'day',
+          displayFormats: {
+            day: 'MM-DD'
+          }
+        },
+        title: {
+          display: true,
+          text: 'Date'
+        }
+      },
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        title: {
+          display: true,
+          text: 'Commission Amount ($)'
+        },
+        beginAtZero: true
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        title: {
+          display: true,
+          text: 'Order Count'
+        },
+        beginAtZero: true,
+        grid: {
+          drawOnChartArea: false
+        }
+      }
+    }
+  };
+
+  // 在图表渲染前添加数据检查
+  const dailyCommissionData = statistics.dailyCommission?.daily_commission;
+
   return (
     <div className="d-flex">
       {/* 侧边栏 */}
@@ -766,10 +826,17 @@ export default function AdminPage() {
                   position: 'relative',
                   margin: '0 auto'
                 }}>
-                  <Line 
-                    data={commissionTrendData} 
-                    options={commissionChartOptions}
-                  />
+                  {dailyCommissionData && dailyCommissionData.datasets?.[0]?.data?.length > 0 ? (
+                    <Line 
+                      options={dailyCommissionOptions} 
+                      data={dailyCommissionData} 
+                      height={300}
+                    />
+                  ) : (
+                    <div className="text-center py-4">
+                      <p>No commission data available</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
