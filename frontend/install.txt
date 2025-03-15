@@ -2,3 +2,10 @@ react-dom
 react-router-dom
 bootstrap
 react-icons
+chart.js
+react-chartjs-2
+axios
+chartjs-adapter-date-fns
+date-fns
+html2canvas
+jspdf

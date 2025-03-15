@@ -1,5 +1,8 @@
+import axios from 'axios';
 // Base URL for API requests
 const BASE_URL = "http://127.0.0.1:8000/";
+
+
 
 async function request(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
@@ -236,4 +239,77 @@ export const getHotelReviews = async (hotelId) => {
   });
   if (!response.ok) throw new Error('Failed to fetch reviews');
   return response.json();
+};
+
+// 管理员统计数据 API
+export const adminAPI = {
+  // 获取用户统计数据
+  getUserStatistics: () => {
+    return axios.get('/api/customadmin/statistics/users/',{
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
+      .then(response => response.data);
+  },
+
+  // 获取订单统计数据
+  getOrderStatistics: () => {
+    return axios.get('/api/customadmin/statistics/orders/',{
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
+      .then(response => response.data);
+  },
+
+  // 获取每日趋势
+  getDailyTrends: () => {
+    return axios.get('/api/customadmin/statistics/daily-trends/',{
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
+      .then(response => response.data);
+  },
+
+  // 获取酒店表现数据
+  getHotelPerformance: () => {
+    return axios.get('/api/customadmin/statistics/hotel-performance/',{
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
+      .then(response => response.data);
+  },
+
+  // 获取用户活动数据
+  getUserActivity: () => {
+    return axios.get('/api/customadmin/statistics/user-activity/',{
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
+      .then(response => response.data);
+  },
+
+  // 获取佣金统计数据
+  getCommissionStatistics: () => {
+    return axios.get('/api/customadmin/statistics/commissions/',{
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
+      .then(response => response.data);
+  },
+
+  // 获取每日佣金统计数据
+  getDailyCommissionStatistics: () => {
+    return axios.get('/api/customadmin/statistics/daily-commission/', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
+      .then(response => response.data);
+  }
 };

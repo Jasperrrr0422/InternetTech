@@ -42,6 +42,19 @@ export default function UserPage() {
     }
   }, []);
 
+  useEffect(() => {
+    const role = localStorage.getItem('role');
+    if (!role || role === 'admin') {
+      navigate('/admin');
+      return;
+    } else if (role === 'owner') {
+      navigate('/owner');
+      return;
+    }
+    
+    // 如果是普通用户，继续加载页面内容
+  }, [navigate]);
+
   // Fetch hotels when the page changes
   useEffect(() => {
     fetchHotels();

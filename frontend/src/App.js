@@ -10,6 +10,7 @@ import PostHotelInfo from './OwnerPage/PostHotelInfo';
 import OrderHistoryPage from './UserPage/OrderHistoryPage' ;
 import HotelOwnerPage from './OwnerPage/HotelOwnerPage';
 import OrderOwnerPage from './OwnerPage/OrderOwnerPage';
+import AdminPage from './AdminPage/AdminPage';
 function App() {
   return (
     <Router>
@@ -25,6 +26,7 @@ function App() {
         <Route path='/ownerupload' element={<PostHotelInfo/>}> </Route>
         <Route path='/order-history' element={<OrderHistoryPage/>}> </Route>
         <Route path="/owner/orders" element={<OrderOwnerPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </Router>
   );
