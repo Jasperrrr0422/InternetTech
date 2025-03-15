@@ -18,7 +18,7 @@ from .tasks import update_hotel_rating
 from decimal import Decimal
 # Create your views here.
 class OrderListView(APIView):
-    permission_classes = [IsAuthenticated, IsUserRole]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         responses={200: OrderSerializer(many=True)},

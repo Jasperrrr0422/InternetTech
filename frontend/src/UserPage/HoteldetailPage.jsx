@@ -161,14 +161,15 @@ export default function HotelDetailPage() {
   const ReviewItem = ({ review, depth = 0 }) => {
     const hasChildren = review.children && review.children.length > 0;
     const isCollapsed = collapsedComments.has(review.id);
+    const isOwner = review.user.role === 'owner';
     
     return (
-      <div className={`card shadow-sm mb-3 border-0 ${depth > 0 ? 'bg-light' : ''}`}>
+      <div className={`card shadow-sm mb-3 border-0 ${depth > 0 ? 'bg-light' : ''} ${isOwner ? 'border-warning border-2' : ''}`}>
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-start mb-3">
             <div className="d-flex align-items-center">
               <div 
-                className={`${depth === 0 ? 'bg-primary' : 'bg-secondary'} text-white rounded-circle p-2 me-2`}
+                className={`${isOwner ? 'bg-warning' : depth === 0 ? 'bg-primary' : 'bg-secondary'} text-white rounded-circle p-2 me-2`}
                 style={{ 
                   width: `${40 - depth * 4}px`, 
                   height: `${40 - depth * 4}px`, 
@@ -183,6 +184,12 @@ export default function HotelDetailPage() {
               <div>
                 <h6 className="mb-0" style={{ fontSize: `${1 - depth * 0.05}rem` }}>
                   {review.user.username}
+                  {isOwner && (
+                    <span className="badge bg-warning text-dark ms-2">
+                      <i className="bi bi-house-door-fill me-1"></i>
+                      Owner
+                    </span>
+                  )}
                 </h6>
                 <small className="text-muted">
                   <i className="bi bi-clock me-1"></i>
@@ -205,7 +212,7 @@ export default function HotelDetailPage() {
                 </button>
               )}
               <button 
-                className={`btn btn-${depth === 0 ? 'outline-primary' : 'outline-secondary'} btn-sm`}
+                className={`btn btn-${isOwner ? 'outline-warning' : depth === 0 ? 'outline-primary' : 'outline-secondary'} btn-sm`}
                 onClick={() => setReplyTo(review.id)}
               >
                 <i className="bi bi-reply me-1"></i>
@@ -213,7 +220,15 @@ export default function HotelDetailPage() {
               </button>
             </div>
           </div>
-          <p className={`mb-3 ${depth > 0 ? 'ms-5' : ''}`}>{review.comment}</p>
+          <p className={`mb-3 ${depth > 0 ? 'ms-5' : ''}`}>
+            {isOwner && (
+              <span className="badge bg-warning text-dark me-2">
+                <i className="bi bi-patch-check-fill me-1"></i>
+                Official Response
+              </span>
+            )}
+            {review.comment}
+          </p>
           
           {/* 子评论部分 - 添加折叠功能 */}
           {hasChildren && !isCollapsed && (
@@ -376,7 +391,28 @@ export default function HotelDetailPage() {
               {replyTo && (
                 <div className="alert alert-info d-flex align-items-center">
                   <i className="bi bi-reply-fill me-2"></i>
-                  <span>Replying to comment #{replyTo}</span>
+                  <div>
+                    <span>Replying to </span>
+                    <strong>
+                      {(() => {
+                        const targetReview = reviews?.find(r => 
+                          r.id === replyTo || 
+                          r.children?.some(c => c.id === replyTo)
+                        );
+                        return targetReview?.user.username || 'comment';
+                      })()}
+                      {(() => {
+                        const targetReview = reviews?.find(r => 
+                          r.id === replyTo || 
+                          r.children?.some(c => c.id === replyTo)
+                        );
+                        return targetReview?.user.role === 'owner' ? (
+                          <span className="badge bg-warning text-dark ms-1">Owner</span>
+                        ) : null;
+                      })()}
+                    </strong>
+                    <span> #{replyTo}</span>
+                  </div>
                   <button 
                     type="button" 
                     className="btn-close ms-auto"

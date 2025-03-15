@@ -89,14 +89,15 @@ export default function HotelOwnerPage() {
     const ReviewItem = ({ review, depth = 0 }) => {
         const hasChildren = review.children && review.children.length > 0;
         const isCollapsed = collapsedComments.has(review.id);
+        const isOwner = review.user.role === 'owner';
         
         return (
-            <div className={`card shadow-sm mb-3 border-0 ${depth > 0 ? 'bg-light' : ''}`}>
+            <div className={`card shadow-sm mb-3 border-0 ${depth > 0 ? 'bg-light' : ''} ${isOwner ? 'border-warning border-2' : ''}`}>
                 <div className="card-body">
                     <div className="d-flex justify-content-between align-items-start mb-3">
                         <div className="d-flex align-items-center">
                             <div 
-                                className={`${depth === 0 ? 'bg-primary' : 'bg-secondary'} text-white rounded-circle p-2 me-2`}
+                                className={`${isOwner ? 'bg-warning' : depth === 0 ? 'bg-primary' : 'bg-secondary'} text-white rounded-circle p-2 me-2`}
                                 style={{ 
                                     width: `${40 - depth * 4}px`, 
                                     height: `${40 - depth * 4}px`, 
@@ -111,8 +112,11 @@ export default function HotelOwnerPage() {
                             <div>
                                 <h6 className="mb-0" style={{ fontSize: `${1 - depth * 0.05}rem` }}>
                                     {review.user.username}
-                                    {review.user.role === 'owner' && (
-                                        <span className="badge bg-warning ms-2">Owner</span>
+                                    {isOwner && (
+                                        <span className="badge bg-warning text-dark ms-2">
+                                            <i className="bi bi-house-door-fill me-1"></i>
+                                            Owner
+                                        </span>
                                     )}
                                 </h6>
                                 <small className="text-muted">
@@ -135,7 +139,7 @@ export default function HotelOwnerPage() {
                                 </button>
                             )}
                             <button 
-                                className={`btn btn-${depth === 0 ? 'outline-primary' : 'outline-secondary'} btn-sm`}
+                                className={`btn btn-${isOwner ? 'outline-warning' : depth === 0 ? 'outline-primary' : 'outline-secondary'} btn-sm`}
                                 onClick={() => setReplyTo(review.id)}
                             >
                                 <i className="bi bi-reply me-1"></i>
@@ -143,7 +147,15 @@ export default function HotelOwnerPage() {
                             </button>
                         </div>
                     </div>
-                    <p className={`mb-3 ${depth > 0 ? 'ms-5' : ''}`}>{review.comment}</p>
+                    <p className={`mb-3 ${depth > 0 ? 'ms-5' : ''}`}>
+                        {isOwner && (
+                            <span className="badge bg-warning text-dark me-2">
+                                <i className="bi bi-patch-check-fill me-1"></i>
+                                Official Response
+                            </span>
+                        )}
+                        {review.comment}
+                    </p>
                     
                     {hasChildren && !isCollapsed && (
                         <div className={`ms-4 ps-3 border-start ${depth > 0 ? 'border-secondary' : ''}`}>
@@ -276,10 +288,24 @@ export default function HotelOwnerPage() {
                                                     <i className="bi bi-reply-fill me-2"></i>
                                                     <div>
                                                         <span>Replying to </span>
-                                                        <strong>{reviews?.find(r => 
-                                                            r.id === replyTo || 
-                                                            r.children?.some(c => c.id === replyTo)
-                                                        )?.user.username || 'comment'}</strong>
+                                                        <strong>
+                                                            {(() => {
+                                                                const targetReview = reviews?.find(r => 
+                                                                    r.id === replyTo || 
+                                                                    r.children?.some(c => c.id === replyTo)
+                                                                );
+                                                                return targetReview?.user.username || 'comment';
+                                                            })()}
+                                                            {(() => {
+                                                                const targetReview = reviews?.find(r => 
+                                                                    r.id === replyTo || 
+                                                                    r.children?.some(c => c.id === replyTo)
+                                                                );
+                                                                return targetReview?.user.role === 'owner' ? (
+                                                                    <span className="badge bg-warning text-dark ms-1">Owner</span>
+                                                                ) : null;
+                                                            })()}
+                                                        </strong>
                                                         <span> #{replyTo}</span>
                                                     </div>
                                                     <button 
@@ -295,7 +321,7 @@ export default function HotelOwnerPage() {
                                                     style={{ minHeight: "120px", resize: "none" }}
                                                     value={comment}
                                                     onChange={(e) => setComment(e.target.value)}
-                                                    placeholder={replyTo ? "Write your response as owner..." : "Write your comment..."}
+                                                    placeholder={replyTo ? "Write your official response..." : "Write your response as owner..."}
                                                 ></textarea>
                                             </div>
                                             {reviewError && (
@@ -304,9 +330,9 @@ export default function HotelOwnerPage() {
                                                     {reviewError}
                                                 </div>
                                             )}
-                                            <button type="submit" className="btn btn-primary">
+                                            <button type="submit" className="btn btn-warning">
                                                 <i className="bi bi-send-fill me-2"></i>
-                                                {replyTo ? "Post Response" : "Post Comment"}
+                                                {replyTo ? "Post Official Response" : "Post Response"}
                                             </button>
                                         </form>
                                     </div>
@@ -324,7 +350,7 @@ export default function HotelOwnerPage() {
                                                 ))
                                             ) : (
                                                 <div className="text-center py-5">
-                                                    <i className="bi bi-chat-dots display-4 text-muted mb-3"></i>
+                                                    <i className="bi bi-chat-dots display-4 text-muted mb-3 d-block"></i>
                                                     <p className="text-muted">No reviews yet for this property.</p>
                                                 </div>
                                             )
