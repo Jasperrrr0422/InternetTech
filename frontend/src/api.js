@@ -212,3 +212,28 @@ export async function executePayment(orderId, paymentId, payerId) {
     throw error;
   }
 }
+
+// 创建评论
+export const createReview = async (data) => {
+  const response = await fetch('/api/reviews/create/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create review');
+  return response.json();
+};
+
+// 获取酒店评论
+export const getHotelReviews = async (hotelId) => {
+  const response = await fetch(`/api/reviews/hotel/${hotelId}/`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch reviews');
+  return response.json();
+};

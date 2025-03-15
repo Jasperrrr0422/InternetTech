@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
-import { getHotelDetail, createBooking } from "../api";
+import { getHotelDetail, createBooking, createReview, getHotelReviews } from "../api";
 
 export default function HotelDetailPage() {
   const { id } = useParams(); // Get hotel ID from URL
@@ -12,6 +12,11 @@ export default function HotelDetailPage() {
   const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(false); // Booking status
   const [error, setError] = useState(null); // Booking error message
+  const [reviews, setReviews] = useState(null);
+  const [comment, setComment] = useState("");
+  const [replyTo, setReplyTo] = useState(null);
+  const [reviewError, setReviewError] = useState(null);
+  const [collapsedComments, setCollapsedComments] = useState(new Set());
 
   // Fetch hotel details
   const fetchHotelDetails = useCallback(async () => {
@@ -92,10 +97,167 @@ export default function HotelDetailPage() {
     }
   };
 
+  // 获取评论数据
+  const fetchReviews = useCallback(async () => {
+    try {
+      const data = await getHotelReviews(id);
+      setReviews(data.reviews);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    }
+  }, [id]);
+
+  // 在组件加载时获取评论
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
+
+  // 处理评论提交
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setReviewError(null);
+
+    if (!comment.trim()) {
+      setReviewError("Please enter a comment");
+      return;
+    }
+
+    try {
+      const reviewData = {
+        hotel: parseInt(id, 10),
+        comment: comment.trim(),
+        parent: replyTo
+      };
+
+      await createReview(reviewData);
+      setComment("");
+      setReplyTo(null);
+      fetchReviews(); // 刷新评论列表
+    } catch (error) {
+      setReviewError("Failed to post comment. Please try again.");
+      console.error("Error posting review:", error);
+    }
+  };
+
+  // 处理折叠/展开
+  const toggleCollapse = (commentId) => {
+    setCollapsedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
+  };
+
   // Show loading text if hotel details are not yet loaded
   if (!hotel) {
     return <p>Loading...</p>;
   }
+
+  // 修改后的 ReviewItem 组件
+  const ReviewItem = ({ review, depth = 0 }) => {
+    const hasChildren = review.children && review.children.length > 0;
+    const isCollapsed = collapsedComments.has(review.id);
+    const isOwner = review.user.role === 'owner';
+    
+    return (
+      <div className={`card shadow-sm mb-3 border-0 ${depth > 0 ? 'bg-light' : ''} ${isOwner ? 'border-warning border-2' : ''}`}>
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-start mb-3">
+            <div className="d-flex align-items-center">
+              <div 
+                className={`${isOwner ? 'bg-warning' : depth === 0 ? 'bg-primary' : 'bg-secondary'} text-white rounded-circle p-2 me-2`}
+                style={{ 
+                  width: `${40 - depth * 4}px`, 
+                  height: `${40 - depth * 4}px`, 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center",
+                  fontSize: `${1 - depth * 0.1}rem`
+                }}
+              >
+                {review.user.username.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h6 className="mb-0" style={{ fontSize: `${1 - depth * 0.05}rem` }}>
+                  {review.user.username}
+                  {isOwner && (
+                    <span className="badge bg-warning text-dark ms-2">
+                      <i className="bi bi-house-door-fill me-1"></i>
+                      Owner
+                    </span>
+                  )}
+                </h6>
+                <small className="text-muted">
+                  <i className="bi bi-clock me-1"></i>
+                  {review.created_at}
+                </small>
+              </div>
+            </div>
+            <div className="d-flex align-items-center gap-2">
+              {/* 折叠按钮 - 只在有子评论时显示 */}
+              {hasChildren && (
+                <button 
+                  className="btn btn-link btn-sm text-decoration-none p-0 px-2"
+                  onClick={() => toggleCollapse(review.id)}
+                >
+                  <i className={`bi bi-chevron-${isCollapsed ? 'down' : 'up'}`}></i>
+                  {isCollapsed ? 
+                    `Show ${review.children.length} replies` : 
+                    `Hide replies`
+                  }
+                </button>
+              )}
+              <button 
+                className={`btn btn-${isOwner ? 'outline-warning' : depth === 0 ? 'outline-primary' : 'outline-secondary'} btn-sm`}
+                onClick={() => setReplyTo(review.id)}
+              >
+                <i className="bi bi-reply me-1"></i>
+                Reply
+              </button>
+            </div>
+          </div>
+          <p className={`mb-3 ${depth > 0 ? 'ms-5' : ''}`}>
+            {isOwner && (
+              <span className="badge bg-warning text-dark me-2">
+                <i className="bi bi-patch-check-fill me-1"></i>
+                Official Response
+              </span>
+            )}
+            {review.comment}
+          </p>
+          
+          {/* 子评论部分 - 添加折叠功能 */}
+          {hasChildren && !isCollapsed && (
+            <div className={`ms-4 ps-3 border-start ${depth > 0 ? 'border-secondary' : ''}`}>
+              {review.children.map(child => (
+                <ReviewItem 
+                  key={child.id} 
+                  review={child} 
+                  depth={depth + 1}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* 折叠状态提示 */}
+          {hasChildren && isCollapsed && (
+            <div 
+              className="ms-4 ps-3 text-muted cursor-pointer"
+              onClick={() => toggleCollapse(review.id)}
+              style={{ cursor: 'pointer' }}
+            >
+              <i className="bi bi-three-dots me-2"></i>
+              {review.children.length} hidden {review.children.length === 1 ? 'reply' : 'replies'}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="container mt-4">
@@ -182,12 +344,127 @@ export default function HotelDetailPage() {
       </div>
 
       {/* Comment Section */}
-      <div className="mt-4">
-        <h3>Comments</h3>
-        <div className="mb-3">
-          <input type="text" className="form-control mb-2" placeholder="Your name" />
-          <textarea className="form-control mb-2" rows="3" placeholder="Post your comments"></textarea>
-          <button className="btn btn-secondary">Submit</button>
+      <div className="mt-5">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h3>
+              <i className="bi bi-chat-dots me-2"></i>
+              Reviews
+            </h3>
+            {reviews?.length > 0 && (
+              <div className="btn-group btn-group-sm mt-2">
+                <button 
+                  className="btn btn-outline-secondary"
+                  onClick={() => setCollapsedComments(new Set())}
+                >
+                  <i className="bi bi-chevron-expand me-1"></i>
+                  Expand All
+                </button>
+                <button 
+                  className="btn btn-outline-secondary"
+                  onClick={() => setCollapsedComments(new Set(
+                    reviews.flatMap(review => {
+                      const ids = [review.id];
+                      if (review.children) {
+                        ids.push(...review.children.map(child => child.id));
+                      }
+                      return ids;
+                    })
+                  ))}
+                >
+                  <i className="bi bi-chevron-contract me-1"></i>
+                  Collapse All
+                </button>
+              </div>
+            )}
+          </div>
+          <span className="badge bg-primary rounded-pill px-3 py-2">
+            <i className="bi bi-star-fill me-1"></i>
+            {reviews?.length || 0} Reviews
+          </span>
+        </div>
+        
+        {/* 评论输入框 */}
+        <div className="card shadow-sm mb-4">
+          <div className="card-body">
+            <form onSubmit={handleReviewSubmit}>
+              {replyTo && (
+                <div className="alert alert-info d-flex align-items-center">
+                  <i className="bi bi-reply-fill me-2"></i>
+                  <div>
+                    <span>Replying to </span>
+                    <strong>
+                      {(() => {
+                        const targetReview = reviews?.find(r => 
+                          r.id === replyTo || 
+                          r.children?.some(c => c.id === replyTo)
+                        );
+                        return targetReview?.user.username || 'comment';
+                      })()}
+                      {(() => {
+                        const targetReview = reviews?.find(r => 
+                          r.id === replyTo || 
+                          r.children?.some(c => c.id === replyTo)
+                        );
+                        return targetReview?.user.role === 'owner' ? (
+                          <span className="badge bg-warning text-dark ms-1">Owner</span>
+                        ) : null;
+                      })()}
+                    </strong>
+                    <span> #{replyTo}</span>
+                  </div>
+                  <button 
+                    type="button" 
+                    className="btn-close ms-auto"
+                    onClick={() => setReplyTo(null)}
+                  ></button>
+                </div>
+              )}
+              <div className="mb-3 position-relative">
+                <textarea 
+                  className="form-control border-0 bg-light"
+                  style={{ minHeight: "120px", resize: "none" }}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder={replyTo ? "Write your response..." : "Share your experience..."}
+                ></textarea>
+              </div>
+              {reviewError && (
+                <div className="alert alert-danger d-flex align-items-center">
+                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                  {reviewError}
+                </div>
+              )}
+              <div className="d-flex justify-content-end">
+                <button type="submit" className="btn btn-primary">
+                  <i className="bi bi-send-fill me-2"></i>
+                  {replyTo ? "Post Response" : "Post Review"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* 评论列表 */}
+        <div className="reviews-list">
+          {reviews ? (
+            reviews.length > 0 ? (
+              reviews.map(review => (
+                <ReviewItem key={review.id} review={review} />
+              ))
+            ) : (
+              <div className="text-center py-5">
+                <i className="bi bi-chat-dots display-4 text-muted mb-3"></i>
+                <p className="text-muted">No reviews yet. Be the first to review!</p>
+              </div>
+            )
+          ) : (
+            <div className="text-center py-4">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
